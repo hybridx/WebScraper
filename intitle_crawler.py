@@ -20,18 +20,21 @@ while True:
 
 
 for url in my_url:
-	uClient = uReq(url)
-	page_html = uClient.read()
-	uClient.close()
-	page_soup = soup(page_html, "html.parser")
-	links = page_soup.findAll("a",href=True)
-
+	try:
+		uClient = uReq(url)
+		page_html = uClient.read()
+		uClient.close()
+		page_soup = soup(page_html, "html.parser")
+		links = page_soup.findAll("a",href=True)
+	except:
+		print("This ended in an error ----> ",url)
 
 	for link in links:
 		completeLink = url+link["href"]
 		sql = "insert into book_links(book_name,book_link) values(\"%s\",\"%s\")" % (str(link.text),str(completeLink)) 
-		cursor.execute(sql)
-
-
-	db.commit()
-	db.close()
+		try:
+			cursor.execute(sql)
+			db.commit()
+		except:
+			print("This ended in an error ----> ",link.text , " ------>",completeLink)
+db.close()
