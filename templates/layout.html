@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="icon" type="image/ico" href="../static/styles/images/icons/png/017-project-management.png">
+		<title>Let's Google</title>
+		<link rel="stylesheet" type="text/css" href="../static/styles/css/bootstrap.min.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<meta charset="UTF-8">
+		<!-- <script src="../static/styles/js/form.js"></script> -->
+	</head>
+	<body>
+		<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+			<a class="navbar-brand" href="#">WebScraper</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText" aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+			</button>
+			<div class="collapse navbar-collapse" id="navbarText">
+				<ul class="navbar-nav mr-auto">
+					<li class="nav-item">
+						<a class="nav-link" href="#">Home</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="#">Top grossing</a>
+					</li>
+				</ul>
+				<span class="navbar-text">
+				<a href="#">Login</a>
+				</span>
+			</div>
+		</nav>
+		{% block body %}{% endblock %}
+	</body>
+</html>
