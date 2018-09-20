@@ -1,4 +1,6 @@
 import pymysql as mysqldb
+
+
 #create connection
 db=mysqldb.connect("localhost","admin","root","books")
 cursor = db.cursor()

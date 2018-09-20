@@ -10,36 +10,15 @@
 		<div class="row">
 			<div class="col-md-3"></div>
 			<div class="col-md-7">
-				<form class="form-inline" action="/" method="POST">
+				<form class="form-inline" id="searchForm" action="/" method="POST">
 					<input class="form-control col-md-8" type="text" id="search" name="search" placeholder="Search">
 					<input class="btn btn-outline-success" type="submit" value="Search">
 				</form>
 			</div>
 		</div>
 		<div style="margin-top: 20px;" class="row">
-			{% if items %}
-				<p class="text-info"> Items found - {{ itemsFound }}</p>
-				<table class="table">
-					<thead class="thead-dark">
-						<tr>
-							<th>#</th>
-							<th>Item Name</th>
-							<th>Link</th>
-						</tr>
-					</thead>
-					<tbody>
-						{% for item in items %}
-							<tr>
-								<th scope="row">{{ item.id }}</th>
-								<td>{{ item.name }}</td>
-								<td><a class="text-info" href={{ item.link }}>{{ item.link }}</a></td>
-							</tr>
-						{% endfor %}
-					</tbody>
+				<table class="table" id="searchResponse">
 				</table>
-			{% else %}
-				<p class="text-danger"> Items Not Found</p>
-			{% endif %}
 		</div>
 	</div>
 {% endblock body %}
