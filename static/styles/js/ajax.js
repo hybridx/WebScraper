@@ -35,6 +35,14 @@ $(document).ready(function() {
 
 	$('#addLinkForm').on('submit',function(event){
 
+		$(document).ajaxStart(function(){
+			//console.log("loading");
+        	$('#loading').attr('style', 'visibility: visible;');
+    	});
+    	$(document).ajaxComplete(function(){
+    		//console.log("loading complete");
+        	$('#loading').attr('style', 'visibility: hidden;');
+    	});
 		$.ajax({
 			url: '/adminAJAX',
 			type: 'POST',
@@ -42,22 +50,14 @@ $(document).ready(function() {
 		})
 		.done(function(data) {
 			console.log("success " + data);
-			var displayData;
-			displayData = '';
-			displayData += '<thead class="thead-dark"><tr><th>#id</th><th>Name</th><th>Link</th></tr></thead>';
-			$.each(JSON.parse(data),function(key,value) {
-				displayData += '<tbody id="tableBody">';
-				displayData += '<tr>';
-				displayData += '<th scope="row">'+value.id+'</th>';
-				displayData += '<td>'+value.name+'</td>';
-				displayData += '<td>'+value.link+'</td>';
-				displayData += '</tr>';
-				displayData += '</tbody>';
-			});
-			$('#addedLinks').html(displayData);
+			var test = $.parseJSON(data);
+			console.log(test[0]["status"],test[0]["response"]);
+			$('#LinkResponse').text("This is the status "+ test[0]["status"] + " with link = " + test[0]["response"])
 		});
 
 		event.preventDefault();
 	});
+
+//-----------------------------------------------------------------------------------------
 	
 });

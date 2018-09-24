@@ -1,4 +1,7 @@
 import pymysql as mysqldb
+from urllib.request import urlopen as uReq
+from bs4 import BeautifulSoup as soup
+import pymysql as MySQLdb
 
 
 #create connection
@@ -30,6 +33,33 @@ def getList(query):
 
 	return links
 
+def crawl(url):
+	try:
+		uClient = uReq(url)
+		page_html = uClient.read()
+		uClient.close()
+		print("Parsing URL...")
+		page_soup = soup(page_html, "html.parser")
+		links = page_soup.findAll("a",href=True)
+	except:
+		#print("This ended in an error ----> ",url)
+		status = 500
+		return status,url
+	num = 0
+	for link in links:
+		completeLink = url+link["href"]
+		print(link)
+		sql = "insert into book_links(book_name,book_link) values(\"%s\",\"%s\")" % (str(link.text),str(completeLink)) 
+		num += 1
+		try:
+			cursor.execute(sql)
+			db.commit()
+		except:
+			status = 500
+			return status,link.text
+	status = 200
+	return status,num
+
 
 if __name__ == '__main__':
-	print(getList(input("Enter:")))
+	print(crawl(input("Enter:")))

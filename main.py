@@ -41,26 +41,26 @@ def admin():
 def adminAJAX():
 	if request.method == 'POST':
 		link = request.form['addLink']
-	link=[
-		{
-		'id':1,
-		'name':'Learn Flask',
-		'link':'http://localhost:5000/flask',
-		},
-		{
-		'id':2,
-		'name':'Learn Python',
-		'link':'http://localhost:5000/python',
-		}
-	]
-	return json.dumps(link)
+	status,response = model.crawl(link)
+	if status==200:
+		result = [{"status":"OK","response":response}]
+		return json.dumps(result)
+	else:
+		result = [{"status":"error","response":response}]
+		return json.dumps(result)
+
+#--------------------------------------------------------------------------------------
+
+@app.errorhandler(404)
+def page_not_found(e):
+	return render_template('404.html'),404
+
 
 #--------------------------------------------------------------------------------------
 
 # @app.route('/name/<name>')
 # def name(name):
 # 	return 'Hey there %s ' % name
-
 #--------------------------------------------------------------------------------------
 # @app.route('/number/<int:num>')
 # def number(num):
