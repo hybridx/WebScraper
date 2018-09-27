@@ -34,29 +34,29 @@ def getList(query):
 	return links
 
 def crawl(url):
+	errors = ''
 	try:
 		uClient = uReq(url)
 		page_html = uClient.read()
 		uClient.close()
-		print("Parsing URL...")
+		#print("Parsing URL...")
 		page_soup = soup(page_html, "html.parser")
 		links = page_soup.findAll("a",href=True)
 	except:
 		#print("This ended in an error ----> ",url)
-		status = 500
-		return status,url
+		errors += url
+		#return status,url
 	num = 0
 	for link in links:
 		completeLink = url+link["href"]
-		print(link)
-		sql = "insert into book_links(book_name,book_link) values(\"%s\",\"%s\")" % (str(link.text),str(completeLink)) 
-		num += 1
+		#print(link)
+		sql = "insert into book_links(book_name,book_link) values(\"%s\",\"%s\")" % (str(link.text),str(completeLink))
 		try:
 			cursor.execute(sql)
 			db.commit()
+			num += 1
 		except:
-			status = 500
-			return status,link.text
+			errors += link.text
 	status = 200
 	return status,num
 

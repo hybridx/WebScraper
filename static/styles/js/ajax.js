@@ -17,7 +17,7 @@ $(document).ready(function() {
 				displayData += '<tr>';
 				displayData += '<th scope="row">'+value.id+'</th>';
 				displayData += '<td>'+value.name+'</td>';
-				displayData += '<td><a class="text-warning" href='+value.link+'>'+value.link+'</a></td>';
+				displayData += '<td><a class="text-muted" href='+value.link+'>'+value.link+'</a></td>';
 				displayData += '</tr>';
 				displayData += '</tbody>';
 			});

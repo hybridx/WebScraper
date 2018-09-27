@@ -1,0 +1,1 @@
+DELETE n1 FROM book_links n1, book_links n2 WHERE n1.id > n2.id AND n1.book_name = n2.book_name;

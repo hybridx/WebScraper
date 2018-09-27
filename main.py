@@ -41,12 +41,16 @@ def admin():
 def adminAJAX():
 	if request.method == 'POST':
 		link = request.form['addLink']
-	status,response = model.crawl(link)
-	if status==200:
-		result = [{"status":"OK","response":response}]
-		return json.dumps(result)
+		if link == "":
+			result = [{"status":"error","response":"Incorrect input"}]
+			return json.dumps(result)
+	if link.startswith("http"):		
+		status,response = model.crawl(link)
+		if status==200:
+			result = [{"status":"OK","response":response}]
+			return json.dumps(result)
 	else:
-		result = [{"status":"error","response":response}]
+		result = [{"status":"error","response":"Invalid link"}]
 		return json.dumps(result)
 
 #--------------------------------------------------------------------------------------
