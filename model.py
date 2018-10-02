@@ -11,9 +11,9 @@ cursor = db.cursor()
 def getList(query):
 	query = "%" + query + "%"
 	if query:
-		sql = "select * from book_links where book_name like \"%s\";" % query
+		sql = "select * from book_links where book_link like \"%s\";" % query
 	else:
-		sql = "select * from book_links where book_name like \"null\";"
+		sql = "select * from book_links where book_link like \"null\";"
 	#execute the sql statement
 	cursor.execute(sql)
 	#after preparing the statment fetch all the tuples
