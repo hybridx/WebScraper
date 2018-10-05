@@ -1,33 +1,30 @@
 import pymysql as mysqldb
 from urllib.request import urlopen as uReq
 from bs4 import BeautifulSoup as soup
-import pymysql as MySQLdb
-
+import pymongo
 
 #create connection
 db=mysqldb.connect("localhost","admin","root","books")
 cursor = db.cursor()
+#----------------------------------------------------------------------------------
+dbmongo = pymongo.MongoClient(username="admin",password="root",authSource="admin")
+collection = dbmongo.links.links
 
-def getList(query):
-	query = "%" + query + "%"
-	if query:
-		sql = "select * from book_links where book_link like \"%s\";" % query
-	else:
-		sql = "select * from book_links where book_link like \"null\";"
-	#execute the sql statement
-	cursor.execute(sql)
-	#after preparing the statment fetch all the tuples
-	result = cursor.fetchall()
-	#defined a list called links
+def getList(query="default"):
+	search_query = {'$regex': "", '$options': 'i'}
+	search_query["$regex"] = query
+	
 	links = []
 	num = 0
-	#save elements in list with id , name and link
-	for item in result:
+	
+	for item in collection.find({'link': search_query}):
+		#print(item["name"])
 		if links.__len__()-1 != num:
 			links.append({})
-		links[num]['id'] = item[0]
-		links[num]['name'] = item[1]
-		links[num]['link'] = item[2]
+		links[num]['id'] = str(item["_id"])
+		links[num]['name'] = item["name"]
+		links[num]['link'] = item["link"]
+		links[num]['type'] = item["type"]
 		#links.append({}) extra append should be created
 		num += 1
 

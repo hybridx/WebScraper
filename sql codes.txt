@@ -1,1 +1,10 @@
 DELETE n1 FROM book_links n1, book_links n2 WHERE n1.id > n2.id AND n1.book_link = n2.book_link;
+
+
+keep the num file set to zero the first time
+
+
+https://websiteforstudents.com/install-mongodb-on-ubuntu-18-04-lts-beta-server/
+
+
+mongo -u admin -p root --authenticationDatabase admin

@@ -11,13 +11,13 @@ $(document).ready(function() {
 			//console.log("success " + data);
 			var displayData;
 			displayData = '';
-			displayData += '<thead class="thead-dark"><tr><th>#id</th><th>Name</th><th>Link</th></tr></thead>';
+			displayData += '<thead class="thead-dark"><tr><th>#</th><th>Name</th><th>Link</th></tr></thead>';
 			$.each(JSON.parse(data),function(key,value) {
 				displayData += '<tbody id="tableBody">';
 				displayData += '<tr>';
 				displayData += '<th scope="row">'+value.id+'</th>';
 				displayData += '<td>'+value.name+'</td>';
-				displayData += '<td><a class="text-muted" href='+value.link+'>'+value.link+'</a></td>';
+				displayData += '<td class="d-inline-block col-8"><a class="text-muted" href='+value.link+'>'+value.link+'</a></td>';
 				displayData += '</tr>';
 				displayData += '</tbody>';
 			});
@@ -38,10 +38,12 @@ $(document).ready(function() {
 		$(document).ajaxStart(function(){
 			//console.log("loading");
         	$('#loading').attr('style', 'visibility: visible;');
+        	$('#addLinkBtn').attr('class', 'btn btn-outline-danger disabled');
     	});
     	$(document).ajaxComplete(function(){
     		//console.log("loading complete");
         	$('#loading').attr('style', 'visibility: hidden;');
+        	$('#addLinkBtn').attr('class','btn btn-outline-success');
     	});
 		$.ajax({
 			url: '/adminAJAX',
