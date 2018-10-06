@@ -9,7 +9,7 @@ collection = dbmongo.links.links
 def query(text="default"):
 	search_query = {'$regex': "", '$options': 'i'}
 	search_query["$regex"] = text
-
+	#db.links.find({$and:[{"link":{$regex:"cold",$options:"i"}},{"link":{$regex:"skin",$options:"i"}}]})
 	links = []
 	num = 0
 	
