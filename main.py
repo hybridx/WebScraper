@@ -20,9 +20,14 @@ def index():
 @app.route('/searchAJAX',methods=['POST'])
 def process():
 	search=request.form['search']
-	if search == "":
-		search = "++++++++++++++++++++++"
-	links=model.getList(search)
+	splt = search.split(" ")
+	search = []
+	for word in splt:
+		if word != "":
+			search.append(word)
+	if search[0] == "" or search[0] == "%":
+		return json.dumps({'error':'True'})
+	links=model.getList(search[0])
 	if links:
 		return json.dumps(links)
 	else:
