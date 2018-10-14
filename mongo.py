@@ -36,8 +36,8 @@ def main():
 	f.close()
 
 
-	#sql='DELETE n1 FROM book_links n1, book_links n2 WHERE n1.id > n2.id AND n1.book_link = n2.book_link;'
-	#cursor.execute(sql)
+	sql='DELETE n1 FROM book_links n1, book_links n2 WHERE n1.id > n2.id AND n1.book_link = n2.book_link;'
+	cursor.execute(sql)
 
 	sql = "select * from book_links where id > %d;" % num
 	print(sql)
@@ -155,5 +155,5 @@ def main():
 
 
 if __name__ == '__main__':
-	#main()
-	query(input("Please enter:"))
+	main()
+	#query(input("Please enter:"))

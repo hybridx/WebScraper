@@ -17,9 +17,10 @@ def index():
 	return render_template("index.html")
 #--------------------------------------------------------------------------------------
 #for index ajax purpose
-@app.route('/searchAJAX',methods=['POST'])
+@app.route('/searchAJAX',methods=['GET'])
 def process():
-	search=request.form['search']
+	search=request.args["search"]
+	print(search)
 	splt = search.split(" ")
 	search = []
 	for word in splt:

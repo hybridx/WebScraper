@@ -3,7 +3,7 @@ $(document).ready(function() {
 	$('#searchForm').on('submit',function (event) {
 		$.ajax({
 			url: '/searchAJAX',
-			type: 'POST',
+			type: 'GET',
 			data: $('#search'),
 		})
 		//this is where the response is received

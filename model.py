@@ -2,7 +2,7 @@ import pymysql as mysqldb
 from urllib.request import urlopen as uReq
 from bs4 import BeautifulSoup as soup
 import pymongo
-
+import connections
 #create connection
 db=mysqldb.connect("localhost","admin","root","books")
 cursor = db.cursor()
