@@ -11,13 +11,14 @@ $(document).ready(function() {
 			//console.log("success " + data);
 			var displayData;
 			displayData = '';
-			displayData += '<thead class="thead-dark"><tr><th>#</th><th>Name</th><th>Link</th></tr></thead>';
+			displayData += '<thead class="thead-dark"><tr><th>Name</th><th>Link</th><th>Type</th></tr></thead>';
 			$.each(JSON.parse(data),function(key,value) {
 				displayData += '<tbody id="tableBody">';
 				displayData += '<tr>';
-				displayData += '<th scope="row">'+value.id+'</th>';
-				displayData += '<td>'+value.name+'</td>';
+				//displayData += '<th scope="row">'+value.id+'</th>';
+				displayData += '<th scope="row">'+value.name+'</th>';
 				displayData += '<td class="d-inline-block col-8"><a class="text-muted" href='+value.link+'>'+value.link+'</a></td>';
+				displayData += '<td>'+value.type+'</td>';
 				displayData += '</tr>';
 				displayData += '</tbody>';
 			});
