@@ -31,7 +31,7 @@ def process():
 			search.append(word)
 	if search[0] == "" or search[0] == "%":
 		return json.dumps({'error':'True'})
-	links=model.getList(search[0])
+	links=model.getList(search[0],linkType)
 	if links:
 		return json.dumps(links)
 	else:

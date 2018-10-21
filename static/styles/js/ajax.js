@@ -30,7 +30,7 @@ $(document).ready(function() {
 			if (data.length > 17)
 				$('#searchResponse').html(displayData);
 			else
-				$('#searchResponse').html('<p class="text-danger" id="noItemsFound">No items found</p>')
+				$('#searchResponse').html('<p class="text-danger" id="noItemsFound">No items found.. Please check the spelling or the type</p>')
 
 		});		
 		event.preventDefault();

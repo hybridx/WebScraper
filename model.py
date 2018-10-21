@@ -8,29 +8,115 @@ import pymongo
 dbmongo = pymongo.MongoClient(username="admin",password="root",authSource="admin")
 #------------------
 LinksLinksCollection = dbmongo.links.links
+LinksUrlCollection = dbmongo.links.urls
 LinksErrorUrlCollection = dbmongo.links.errorUrl
 #------------------
 TestdbUrlsCollection = dbmongo.testdb.urls
 TestdbStudentsCollection = dbmongo.testdb.students
 #----------------------------------------------------------------------------------
 
-def getList(query="default"):
+def getList(query="default",linkType="all"):
 	search_query = {'$regex': "", '$options': 'i'}
 	search_query["$regex"] = query
 	
 	links = []
 	num = 0
 	
-	for item in LinksLinksCollection.find({'link': search_query}).limit(10):
-		#print(item["name"])
-		if links.__len__()-1 != num:
-			links.append({})
-		links[num]['id'] = str(item["_id"])
-		links[num]['name'] = item["name"]
-		links[num]['link'] = item["link"]
-		links[num]['type'] = item["type"]
-		#links.append({}) extra append should be created
-		num += 1
+	if linkType == "all":
+		for item in LinksLinksCollection.find({'link': search_query}).limit(10):
+			#print(item["name"])
+			if links.__len__()-1 != num:
+				links.append({})
+			links[num]['id'] = str(item["_id"])
+			links[num]['name'] = item["name"]
+			links[num]['link'] = item["link"]
+			links[num]['type'] = item["type"]
+			#links.append({}) extra append should be created
+			num += 1
+	#db.links.find({$and:[{"link":{$regex:"cold",$options:"i"}},{"link":{$regex:"skin",$options:"i"}}]})
+	if linkType == "video":
+		for item in LinksLinksCollection.find({"$and":[{"type":"video"},{'link': search_query}]}).limit(10):
+			#print(item["name"])
+			if links.__len__()-1 != num:
+				links.append({})
+			links[num]['id'] = str(item["_id"])
+			links[num]['name'] = item["name"]
+			links[num]['link'] = item["link"]
+			links[num]['type'] = item["type"]
+			#links.append({}) extra append should be created
+			num += 1
+
+	if linkType == "audio":
+		for item in LinksLinksCollection.find({"$and":[{"type":"audio"},{'link': search_query}]}).limit(10):
+			#print(item["name"])
+			if links.__len__()-1 != num:
+				links.append({})
+			links[num]['id'] = str(item["_id"])
+			links[num]['name'] = item["name"]
+			links[num]['link'] = item["link"]
+			links[num]['type'] = item["type"]
+			#links.append({}) extra append should be created
+			num += 1
+
+	if linkType == "image":
+		for item in LinksLinksCollection.find({"$and":[{"type":"image"},{'link': search_query}]}).limit(10):
+			#print(item["name"])
+			if links.__len__()-1 != num:
+				links.append({})
+			links[num]['id'] = str(item["_id"])
+			links[num]['name'] = item["name"]
+			links[num]['link'] = item["link"]
+			links[num]['type'] = item["type"]
+			#links.append({}) extra append should be created
+			num += 1
+
+	if linkType == "compressed":
+		for item in LinksLinksCollection.find({"$and":[{"type":"compressed"},{'link': search_query}]}).limit(10):
+			#print(item["name"])
+			if links.__len__()-1 != num:
+				links.append({})
+			links[num]['id'] = str(item["_id"])
+			links[num]['name'] = item["name"]
+			links[num]['link'] = item["link"]
+			links[num]['type'] = item["type"]
+			#links.append({}) extra append should be created
+			num += 1
+
+	if linkType == "executable":
+		for item in LinksLinksCollection.find({"$and":[{"type":"executable"},{'link': search_query}]}).limit(10):
+			#print(item["name"])
+			if links.__len__()-1 != num:
+				links.append({})
+			links[num]['id'] = str(item["_id"])
+			links[num]['name'] = item["name"]
+			links[num]['link'] = item["link"]
+			links[num]['type'] = item["type"]
+			#links.append({}) extra append should be created
+			num += 1
+
+	if linkType == "disk":
+		for item in LinksLinksCollection.find({"$and":[{"type":"disk"},{'link': search_query}]}).limit(10):
+			#print(item["name"])
+			if links.__len__()-1 != num:
+				links.append({})
+			links[num]['id'] = str(item["_id"])
+			links[num]['name'] = item["name"]
+			links[num]['link'] = item["link"]
+			links[num]['type'] = item["type"]
+			#links.append({}) extra append should be created
+			num += 1
+
+	if linkType == "text":
+		for item in LinksLinksCollection.find({"$and":[{"type":"text"},{'link': search_query}]}).limit(10):
+			#print(item["name"])
+			if links.__len__()-1 != num:
+				links.append({})
+			links[num]['id'] = str(item["_id"])
+			links[num]['name'] = item["name"]
+			links[num]['link'] = item["link"]
+			links[num]['type'] = item["type"]
+			#links.append({}) extra append should be created
+			num += 1
 
 	return links
 
@@ -98,8 +184,8 @@ def Crawl(url):
 					pass	
 
 		if dirLink != [{}]:
-			TestdbStudentsCollection.insert_many(dirLink)
-			TestdbUrlsCollection.insert({"url":url})
+			LinksLinksCollection.insert_many(dirLink)
+			LinksUrlCollection.insert({"url":url})
 			return dirLink
 	except:
 		LinksErrorUrlCollection.insert({"ErrorUrl":url})
