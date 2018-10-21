@@ -1,10 +1,15 @@
 $(document).ready(function() {
 	//This is where the data is sent
 	$('#searchForm').on('submit',function (event) {
+		//-------------------
+		//get values from form
+		var search = $('#search').val();
+		var type = $('#type').val();
+		//-------------------
 		$.ajax({
 			url: '/searchAJAX',
 			type: 'GET',
-			data: $('#search'),
+			data: {search:search,type:type},
 		})
 		//this is where the response is received
 		.done(function(data) {
@@ -17,7 +22,7 @@ $(document).ready(function() {
 				displayData += '<tr>';
 				//displayData += '<th scope="row">'+value.id+'</th>';
 				displayData += '<th scope="row">'+value.name+'</th>';
-				displayData += '<td class="d-inline-block col-8"><a class="text-muted" href='+value.link+'>'+value.link+'</a></td>';
+				displayData += '<td class="d-inline-block col-8"><a class="text-muted" href='+value.link+'><p style="width: 500px; word-warp: word-break;">'+value.link+'</p></a></td>';
 				displayData += '<td>'+value.type+'</td>';
 				displayData += '</tr>';
 				displayData += '</tbody>';

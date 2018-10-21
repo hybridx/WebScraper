@@ -15,12 +15,15 @@ def index():
 	# print(links)
 	# itemsFound = links.__len__()
 	return render_template("index.html")
+
+
 #--------------------------------------------------------------------------------------
 #for index ajax purpose
 @app.route('/searchAJAX',methods=['GET'])
 def process():
 	search=request.args["search"]
-	print(search)
+	linkType = request.args["type"]
+	#print(search,linkType)
 	splt = search.split(" ")
 	search = []
 	for word in splt:
@@ -35,6 +38,8 @@ def process():
 		return json.dumps({'error':'True'})
 #--------------------------------------------------------------------------------------
 
+
+
 #admin page only
 @app.route('/admin/')
 def admin():
@@ -42,22 +47,13 @@ def admin():
 
 #--------------------------------------------------------------------------------------
 
+
+
 #admin page ajax
 @app.route('/adminAJAX',methods=['POST'])
 def adminAJAX():
-	if request.method == 'POST':
-		link = request.form['addLink']
-		if link == "":
-			result = [{"status":"error","response":"Incorrect input"}]
-			return json.dumps(result)
-	if link.startswith("http"):		
-		status,response = model.crawl(link)
-		if status==200:
-			result = [{"status":"OK","response":response}]
-			return json.dumps(result)
-	else:
-		result = [{"status":"error","response":"Invalid link"}]
-		return json.dumps(result)
+	result = [{"status":"error","response":"Incorrect input"}]
+	return json.dumps(result)
 
 #--------------------------------------------------------------------------------------
 

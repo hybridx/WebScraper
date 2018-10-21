@@ -1,14 +1,18 @@
-import pymysql as mysqldb
-from urllib.request import urlopen as uReq
+from urllib.request import urlopen
 from bs4 import BeautifulSoup as soup
 import pymongo
-import connections
+
+
+
 #create connection
-db=mysqldb.connect("localhost","admin","root","books")
-cursor = db.cursor()
-#----------------------------------------------------------------------------------
 dbmongo = pymongo.MongoClient(username="admin",password="root",authSource="admin")
-collection = dbmongo.links.links
+#------------------
+LinksLinksCollection = dbmongo.links.links
+LinksErrorUrlCollection = dbmongo.links.errorUrl
+#------------------
+TestdbUrlsCollection = dbmongo.testdb.urls
+TestdbStudentsCollection = dbmongo.testdb.students
+#----------------------------------------------------------------------------------
 
 def getList(query="default"):
 	search_query = {'$regex': "", '$options': 'i'}
@@ -17,7 +21,7 @@ def getList(query="default"):
 	links = []
 	num = 0
 	
-	for item in collection.find({'link': search_query}):
+	for item in LinksLinksCollection.find({'link': search_query}).limit(10):
 		#print(item["name"])
 		if links.__len__()-1 != num:
 			links.append({})
@@ -30,33 +34,76 @@ def getList(query="default"):
 
 	return links
 
-def crawl(url):
-	errors = ''
+def Crawl(url):
 	try:
-		uClient = uReq(url)
+		uClient = urlopen(url)
 		page_html = uClient.read()
 		uClient.close()
-		#print("Parsing URL...")
+		print("Parsing URL..."+ url)
 		page_soup = soup(page_html, "html.parser")
 		links = page_soup.findAll("a",href=True)
 	except:
-		#print("This ended in an error ----> ",url)
-		errors += url
-		#return status,url
-	num = 0
-	for link in links:
-		completeLink = url+link["href"]
-		#print(link)
-		sql = "insert into book_links(book_name,book_link) values(\"%s\",\"%s\")" % (str(link.text),str(completeLink))
-		try:
-			cursor.execute(sql)
-			db.commit()
-			num += 1
-		except:
-			errors += link.text
-	status = 200
-	return status,num
+		LinksErrorUrlCollection.insert({"ErrorUrl":url})
+		#print("ERROR:"+url)
+	try:
+		dirLink = []
+		num = 0
+		for link in links:
+			completeLink = url+link["href"]
 
+			if link["href"].endswith("/") and not link["href"].endswith("../") and not link["href"].startswith("/"):
+				#call the crawl function again
+				Crawl(str(url+link["href"]))
+			else:
+				if dirLink.__len__()-1 != num:
+					dirLink.append({})
+				fullLink=str(url+link["href"])
+
+				if fullLink.lower().endswith(("mp4","mkv","3gp","avi","mov","mpg","mpeg","wmv","m4v")):
+					dirLink[num]["name"]=link.text
+					dirLink[num]["link"]=fullLink
+					dirLink[num]["type"]="video"
+					num += 1
+				elif fullLink.lower().endswith(("mp3","aif","mid","midi","mpa","ogg","wav","wma","wpl")):
+					dirLink[num]["name"]=link.text
+					dirLink[num]["link"]=fullLink
+					dirLink[num]["type"]="audio"
+					num += 1
+				elif fullLink.lower().endswith(("rar","zip","deb","pkg","tar.gz",".z","rpm",".7z","arj")):
+					dirLink[num]["name"]=link.text
+					dirLink[num]["link"]=fullLink
+					dirLink[num]["type"]="compressed"
+					num += 1
+				elif fullLink.lower().endswith(("bin","dmg","iso","toast","vcd")):
+					dirLink[num]["name"]=link.text
+					dirLink[num]["link"]=fullLink
+					dirLink[num]["type"]="disk"
+					num += 1
+				elif fullLink.lower().endswith(("exe","apk","bat","com","jar",".py",".wsf")):
+					dirLink[num]["name"]=link.text
+					dirLink[num]["link"]=fullLink
+					dirLink[num]["type"]="executable"
+					num += 1
+				elif fullLink.lower().endswith(("ai","bmp","gif","ico","jpeg","png","jpg","tif","svg")):
+					dirLink[num]["name"]=link.text
+					dirLink[num]["link"]=fullLink
+					dirLink[num]["type"]="image"
+					num += 1
+				elif fullLink.lower().endswith(("pdf","txt","doc","rtf","wpd","docx","odt","wps","wks")):
+					dirLink[num]["name"]=link.text
+					dirLink[num]["link"]=fullLink
+					dirLink[num]["type"]="text"
+					num += 1
+				else:
+					pass	
+
+		if dirLink != [{}]:
+			TestdbStudentsCollection.insert_many(dirLink)
+			TestdbUrlsCollection.insert({"url":url})
+			return dirLink
+	except:
+		LinksErrorUrlCollection.insert({"ErrorUrl":url})
+		#print("ERROR in second try:"+url)
 
 if __name__ == '__main__':
-	print(crawl(input("Enter:")))
+	print(Crawl(input("Enter:")))

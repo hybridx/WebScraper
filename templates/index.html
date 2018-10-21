@@ -4,21 +4,31 @@
 		<div class="row"  style="margin-top: 100px">
 			<div class="col-md-4"></div>
 			<div class="col-md-5">
-				<p class="text-muted" style="font-size: 50px;">Let's Find it !</p>
+				<p class="text-muted offset-2" style="font-size: 50px;">Let's Find it !</p>
 			</div>
 		</div>
 		<div class="row">
 			<div class="col-md-3"></div>
 			<div class="col-md-7">
-				<form class="form-inline" id="searchForm" action="/" method="GET">
-					<input class="form-control col-md-8" type="text" id="search" name="search" placeholder="Search" required>
-					<input class="btn btn-outline-success" type="submit" value="Search">
+				<form class="form-inline" id="searchForm" action="/searchAjax" method="GET">
+					<input class="form-control col-md-8" type="text" id="search" name="search" placeholder="Search" minlength="3" required>
+					<select name="type" id="type" class="custom-select col-3 btn-outline-success" required>
+						<option value="all" selected>All</option>
+						<option value="video">Video</option>
+						<option value="audio">Audio</option>
+						<option value="image">Image</option>
+						<option value="text">Text</option>
+						<option value="compressed">Compressed</option>
+						<option value="executable">Executable</option>
+						<option value="disk">Disk</option>
+					</select>
+					<input class="btn btn-outline-primary col-6 offset-3" style="margin-top: 10px;" type="submit" value="Search">
 				</form>
 			</div>
 		</div>
 		<div style="margin-top: 20px;" class="row">
-				<table class="table" id="searchResponse">
-				</table>
+			<table class="table" id="searchResponse">
+			</table>
 		</div>
 	</div>
 {% endblock body %}
