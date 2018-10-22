@@ -1,9 +1,10 @@
-from urllib.request import urlopen
 from bs4 import BeautifulSoup as soup
 import pymongo
+import requests
+import urllib.request
 
 MongoDB = pymongo.MongoClient(username="admin",password="root",authSource="admin")
-TestdbStudentsCollection = MongoDB.links.links
+TestdbStudentsCollection = MongoDB.testdb.links
 TestdbUrlsCollection = MongoDB.testdb.urls
 
 
@@ -24,9 +25,12 @@ def Crawl(url):
 
 	#for url in my_url:
 	try:
-		uClient = urlopen(url)
-		page_html = uClient.read()
-		uClient.close()
+		user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+		headers = {'User-Agent': user_agent}
+		request = urllib.request.Request(url,headers={'User-Agent': user_agent})
+		response = urllib.request.urlopen(request)
+		page_html = response.read()
+		response.close()
 		print("Parsing URL..."+ url)
 		page_soup = soup(page_html, "html.parser")
 		links = page_soup.findAll("a",href=True)
@@ -119,4 +123,5 @@ def Crawl(url):
 # Crawl("http://dl2.hexmovie.net/Film/")
 # Crawl("https://theswissbay.ch/pdf/")
 # Crawl("http://songs1.songsrockers.com/hindi-songs/")
-Crawl("aquarium.lipetsk.ru/MESTA/mp3/indian/")
+# Crawl("aquarium.lipetsk.ru/MESTA/mp3/indian/")
+Crawl("http://songspkherodownload.com/")

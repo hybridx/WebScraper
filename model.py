@@ -1,7 +1,7 @@
-from urllib.request import urlopen
 from bs4 import BeautifulSoup as soup
 import pymongo
-
+import requests
+import urllib.request
 
 
 #create connection
@@ -122,21 +122,24 @@ def getList(query="default",linkType="all"):
 
 def Crawl(url):
 	try:
-		uClient = urlopen(url)
-		page_html = uClient.read()
-		uClient.close()
+		user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
+		headers = {'User-Agent': user_agent}
+		request = urllib.request.Request(url,headers={'User-Agent': user_agent})
+		response = urllib.request.urlopen(request)
+		page_html = response.read()
+		response.close()
 		print("Parsing URL..."+ url)
 		page_soup = soup(page_html, "html.parser")
 		links = page_soup.findAll("a",href=True)
 	except:
 		LinksErrorUrlCollection.insert({"ErrorUrl":url})
-		#print("ERROR:"+url)
+		print("ERROR:"+url)
 	try:
 		dirLink = []
 		num = 0
 		for link in links:
 			completeLink = url+link["href"]
-
+			print(link["href"],url)
 			if link["href"].endswith("/") and not link["href"].endswith("../") and not link["href"].startswith("/"):
 				#call the crawl function again
 				Crawl(str(url+link["href"]))
@@ -186,10 +189,10 @@ def Crawl(url):
 		if dirLink != [{}]:
 			LinksLinksCollection.insert_many(dirLink)
 			LinksUrlCollection.insert({"url":url})
-			return dirLink
+			#return dirLink
 	except:
 		LinksErrorUrlCollection.insert({"ErrorUrl":url})
-		#print("ERROR in second try:"+url)
+		print("ERROR in second try:"+url)
 
 if __name__ == '__main__':
 	print(Crawl(input("Enter:")))
