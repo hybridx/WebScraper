@@ -10,10 +10,12 @@ $(document).ready(function() {
 			url: '/searchAJAX',
 			type: 'GET',
 			data: {search:search,type:type},
+			dataType: "json",
 		})
 		//this is where the response is received
 		.done(function(data) {
-			//console.log("success " + data);
+			var data = JSON.stringify(data);
+			//console.log("success " + JSON.stringify(data));
 			var displayData;
 			displayData = '';
 			displayData += '<thead class="thead-dark"><tr><th>Name</th><th>Link</th><th>Type</th></tr></thead>';

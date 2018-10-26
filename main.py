@@ -1,4 +1,4 @@
-from flask import Flask,request,render_template
+from flask import Flask,request,render_template,jsonify
 import json
 import model
 #--------------------------------------------------------------------------------------
@@ -33,9 +33,9 @@ def process():
 		return json.dumps({'error':'True'})
 	links=model.getList(search[0],linkType)
 	if links:
-		return json.dumps(links)
+		return jsonify(links)
 	else:
-		return json.dumps({'error':'True'})
+		return jsonify({'error':'True'})
 #--------------------------------------------------------------------------------------
 
 

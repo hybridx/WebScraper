@@ -15,7 +15,7 @@ TestdbUrlsCollection = dbmongo.testdb.urls
 TestdbStudentsCollection = dbmongo.testdb.students
 #----------------------------------------------------------------------------------
 
-def getList(query="default",linkType="all"):
+def getList(query="default",linkType="all",skip=1):
 	search_query = {'$regex': "", '$options': 'i'}
 	search_query["$regex"] = query
 	
@@ -23,7 +23,7 @@ def getList(query="default",linkType="all"):
 	num = 0
 	
 	if linkType == "all":
-		for item in LinksLinksCollection.find({'link': search_query}).limit(10):
+		for item in LinksLinksCollection.find({'link': search_query}).skip(0).limit(10):
 			#print(item["name"])
 			if links.__len__()-1 != num:
 				links.append({})
