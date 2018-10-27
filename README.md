@@ -1,4 +1,4 @@
-# A simple webcrawler made from Beautiful soup to read information 
+# WebScraper 2.0
 
 The intitle crawler is for information about links in index pages(intitle:index of / .pdf <name of the book>)
  
