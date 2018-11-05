@@ -23,7 +23,7 @@ def getList(query="default",linkType="all",skip=1):
 	num = 0
 	
 	if linkType == "all":
-		for item in LinksLinksCollection.find({'link': search_query}).skip(0).limit(10):
+		for item in LinksLinksCollection.find({'link': search_query}).limit(10):
 			#print(item["name"])
 			if links.__len__()-1 != num:
 				links.append({})
@@ -121,6 +121,7 @@ def getList(query="default",linkType="all",skip=1):
 	return links
 
 def Crawl(url):
+	
 	try:
 		user_agent = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
 		headers = {'User-Agent': user_agent}
