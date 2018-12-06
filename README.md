@@ -39,7 +39,7 @@ Hardware & Software Setup Requirements (User):-
           1. Browser (e.g. Firefox,Chrome)
       Hardware (min):
           • 1 GB RAM(To support heavy browsers)
-          • 20 GB RAM(To support newer operating systems)
+          • 20 GB HDD(To support newer operating systems)
           • Intel P4 or above
 
 Hardware & Software Setup Requirements (System Development):-
