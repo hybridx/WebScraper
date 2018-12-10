@@ -51,7 +51,7 @@ Hardware & Software Setup Requirements (System Development):-
 
     Hardware (min):
         • 1 GB RAM(To support heavy browsers) (4 GB recommended)
-        • 20 GB RAM(To support newer operating systems)
+        • 20 GB HDD(To support newer operating systems)
         • Storage for Mongodb according to the how much the system will scale  
         • Intel Core 2 Duo processor and above
 
