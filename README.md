@@ -80,3 +80,6 @@ REFERENCE
     • https://use-the-index-luke.com/sql/testing-scalability
     • http://infolab.stanford.edu/~backrub/google.html
     • https://pypi.org/project/beautifulsoup4/
+    
+## TODO
+- https://typesense.org/downloads/
