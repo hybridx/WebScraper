@@ -32,6 +32,17 @@ jobs:
       - name: 🔧 Install dependencies
         run: npm ci
         
+      - name: 🔍 Debug environment variables
+        run: |
+          echo "Checking environment variables..."
+          echo "SUPABASE_URL length: ${#NEXT_PUBLIC_SUPABASE_URL}"
+          echo "SUPABASE_KEY length: ${#NEXT_PUBLIC_SUPABASE_ANON_KEY}"
+          echo "CRAWL_URL: $CRAWL_URL"
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          CRAWL_URL: ${{ github.event.inputs.url || github.event.client_payload.url }}
+          
       - name: 🕷️ Run crawler
         run: node scripts/github-crawler.js
         env:
