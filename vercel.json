@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "api/crawler.py": {
-      "runtime": "python3.9"
-    }
-  },
   "framework": "nextjs",
   "regions": ["iad1"]
 } 

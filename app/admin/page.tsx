@@ -358,13 +358,13 @@ export default function AdminPage() {
                 onChange={(e) => setCrawlerType(e.target.value as 'nodejs' | 'python')}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                <option value="nodejs">Node.js Crawler (Fast, JSDOM)</option>
-                <option value="python">Python Crawler (Robust, BeautifulSoup)</option>
+                <option value="nodejs">Enhanced Node.js Crawler (JSDOM + Regex Fallback)</option>
+                <option value="python" disabled>Python Crawler (Coming Soon)</option>
               </select>
               <p className="mt-1 text-sm text-gray-500">
                 {crawlerType === 'nodejs' 
-                  ? 'Fast JavaScript-based crawler using JSDOM for parsing'
-                  : 'More robust Python crawler using BeautifulSoup for complex HTML parsing'
+                  ? 'Enhanced Node.js crawler with JSDOM parsing and regex fallback for maximum compatibility'
+                  : 'Python crawler is currently unavailable on Vercel serverless platform'
                 }
               </p>
             </div>
