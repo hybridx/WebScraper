@@ -186,8 +186,8 @@ export default function AdminPage() {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Panel</h1>
-        <p className="text-gray-600">Manage URLs to crawl and monitor system status</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">Admin Panel</h1>
+        <p className="text-lg text-gray-700">Manage URLs to crawl and monitor system status with advanced controls</p>
       </div>
 
       {/* Message Display */}
@@ -258,7 +258,7 @@ export default function AdminPage() {
           
           <form onSubmit={handleAddUrl} className="space-y-6">
             <div>
-              <label htmlFor="url" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="url" className="block text-sm font-semibold text-gray-800 mb-2">
                 Directory Listing URL
               </label>
               <input
@@ -267,16 +267,16 @@ export default function AdminPage() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com/files/"
-                className="w-full px-4 py-3 border-2 border-gray-400 rounded-lg bg-white text-gray-900 placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-600 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 font-medium"
                 required
               />
-              <p className="mt-2 text-sm text-gray-700">
+              <p className="mt-2 text-sm text-gray-700 font-medium">
                 Enter the URL of a directory listing page (e.g., Apache directory index)
               </p>
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="password" className="block text-sm font-semibold text-gray-800 mb-2">
                 Admin Password
               </label>
               <input
@@ -285,10 +285,10 @@ export default function AdminPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password"
-                className="w-full px-4 py-3 border-2 border-gray-400 rounded-lg bg-white text-gray-900 placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
+                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-600 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 font-medium"
                 required
               />
-              <p className="mt-2 text-sm text-gray-700">
+              <p className="mt-2 text-sm text-gray-700 font-medium">
                 Default password: admin123
               </p>
             </div>

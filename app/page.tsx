@@ -73,14 +73,14 @@ export default function HomePage() {
 
   const getFileIcon = (type: string) => {
     switch (type) {
-      case 'video': return <Video className="w-5 h-5 text-red-500" />;
-      case 'audio': return <Music className="w-5 h-5 text-green-500" />;
-      case 'image': return <Image className="w-5 h-5 text-blue-500" />;
-      case 'compressed': return <Archive className="w-5 h-5 text-yellow-500" />;
-      case 'text': return <FileText className="w-5 h-5 text-gray-500" />;
-      case 'executable': return <Code className="w-5 h-5 text-purple-500" />;
-      case 'disk': return <HardDrive className="w-5 h-5 text-orange-500" />;
-      default: return <FileText className="w-5 h-5 text-gray-500" />;
+      case 'video': return <Video className="w-5 h-5 text-red-600" />;
+      case 'audio': return <Music className="w-5 h-5 text-green-600" />;
+      case 'image': return <Image className="w-5 h-5 text-blue-600" />;
+      case 'compressed': return <Archive className="w-5 h-5 text-yellow-600" />;
+      case 'text': return <FileText className="w-5 h-5 text-gray-700" />;
+      case 'executable': return <Code className="w-5 h-5 text-purple-600" />;
+      case 'disk': return <HardDrive className="w-5 h-5 text-orange-600" />;
+      default: return <FileText className="w-5 h-5 text-gray-700" />;
     }
   };
 
@@ -121,62 +121,66 @@ export default function HomePage() {
     <div className="container mx-auto px-4 py-8">
       {/* Hero Section */}
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-800 mb-4">WebScraper Directory Search</h1>
-        <p className="text-lg text-gray-600 mb-8">Search through crawled directory listings to find media files, documents, and more.</p>
+        <h1 className="text-5xl font-bold text-gray-900 mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          WebScraper Directory Search
+        </h1>
+        <p className="text-xl text-gray-700 mb-8 max-w-2xl mx-auto">
+          Search through crawled directory listings to find media files, documents, and more with powerful filtering options.
+        </p>
         
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <a href="/browse" className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer transform hover:scale-105">
-              <h3 className="text-2xl font-bold text-blue-600">{stats.totalLinks.toLocaleString()}</h3>
-              <p className="text-gray-600">Total Files</p>
-              <p className="text-xs text-blue-500 mt-1">Click to browse all</p>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <a href="/browse" className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:scale-105 border border-gray-100">
+              <h3 className="text-3xl font-bold text-blue-600 mb-2">{stats.totalLinks.toLocaleString()}</h3>
+              <p className="text-gray-700 font-medium">Total Files</p>
+              <p className="text-sm text-blue-600 mt-2 font-medium">Click to browse all →</p>
             </a>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold text-green-600">{stats.totalUrls.toLocaleString()}</h3>
-              <p className="text-gray-600">URLs Crawled</p>
+            <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+              <h3 className="text-3xl font-bold text-green-600 mb-2">{stats.totalUrls.toLocaleString()}</h3>
+              <p className="text-gray-700 font-medium">URLs Crawled</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold text-yellow-600">{stats.pendingUrls.toLocaleString()}</h3>
-              <p className="text-gray-600">Pending URLs</p>
+            <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+              <h3 className="text-3xl font-bold text-yellow-600 mb-2">{stats.pendingUrls.toLocaleString()}</h3>
+              <p className="text-gray-700 font-medium">Pending URLs</p>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-md">
-              <h3 className="text-2xl font-bold text-red-600">{stats.errorUrls.toLocaleString()}</h3>
-              <p className="text-gray-600">Error URLs</p>
+            <div className="bg-white p-8 rounded-xl shadow-lg border border-gray-100">
+              <h3 className="text-3xl font-bold text-red-600 mb-2">{stats.errorUrls.toLocaleString()}</h3>
+              <p className="text-gray-700 font-medium">Error URLs</p>
             </div>
           </div>
         )}
       </div>
 
       {/* Search Form */}
-      <div className="bg-white p-8 rounded-lg shadow-lg mb-8">
+      <div className="bg-white p-8 rounded-xl shadow-xl mb-8 border border-gray-100">
         <form onSubmit={handleSearch} className="space-y-6">
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col md:flex-row gap-6">
             <div className="flex-1">
-              <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="search" className="block text-sm font-semibold text-gray-800 mb-3">
                 Search Query
               </label>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-600 w-5 h-5" />
                 <input
                   type="text"
                   id="search"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Enter search term..."
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-600 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 font-medium"
                 />
               </div>
             </div>
-            <div className="w-full md:w-48">
-              <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="w-full md:w-56">
+              <label htmlFor="type" className="block text-sm font-semibold text-gray-800 mb-3">
                 File Type
               </label>
               <select
                 id="type"
                 value={selectedType}
                 onChange={(e) => setSelectedType(e.target.value)}
-                className="w-full py-3 px-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full py-4 px-4 border-2 border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 font-medium"
               >
                 <option value="all">All Types</option>
                 <option value="video">Video</option>
@@ -192,58 +196,60 @@ export default function HomePage() {
           <button
             type="submit"
             disabled={loading || !searchQuery.trim()}
-            className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 px-8 rounded-xl hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
           >
-            {loading ? 'Searching...' : 'Search'}
+            {loading ? 'Searching...' : 'Search Files'}
           </button>
         </form>
       </div>
 
       {/* Search Results */}
       {searchResults.length > 0 && (
-        <div className="bg-white rounded-lg shadow-lg">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white rounded-xl shadow-xl border border-gray-100">
+          <div className="p-8 border-b border-gray-200">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-gray-800">
+              <h2 className="text-2xl font-bold text-gray-900">
                 Search Results ({searchResults.length} found)
               </h2>
               {selectedLinks.size > 0 && (
                 <button
                   onClick={downloadSelected}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2"
+                  className="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-200 flex items-center gap-3 font-semibold shadow-lg hover:shadow-xl"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-5 h-5" />
                   Download Selected ({selectedLinks.size})
                 </button>
               )}
             </div>
           </div>
           
-          <div className="p-6">
+          <div className="p-8">
             <div className="space-y-4">
               {searchResults.map((link) => (
                 <div
                   key={link.id}
-                  className={`flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors duration-200 ${
-                    selectedLinks.has(link.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                  className={`flex items-center justify-between p-6 border-2 rounded-xl hover:bg-gray-50 transition-all duration-200 ${
+                    selectedLinks.has(link.id) 
+                      ? 'border-blue-500 bg-blue-50 shadow-md' 
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-center space-x-4 flex-1">
+                  <div className="flex items-center space-x-5 flex-1">
                     <input
                       type="checkbox"
                       checked={selectedLinks.has(link.id)}
                       onChange={() => toggleLinkSelection(link.id)}
-                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 focus:ring-2"
                     />
                     {getFileIcon(link.type)}
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-800 truncate">{link.name}</h3>
-                      <p className="text-sm text-gray-500 truncate">{link.link}</p>
-                      <div className="flex items-center space-x-4 mt-1">
-                        <span className="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                      <h3 className="font-semibold text-gray-900 truncate text-lg">{link.name}</h3>
+                      <p className="text-gray-700 truncate mt-1">{link.link}</p>
+                      <div className="flex items-center space-x-4 mt-2">
+                        <span className="inline-block px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-full border">
                           {link.type}
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-sm text-gray-600">
                           {new Date(link.created_at).toLocaleDateString()}
                         </span>
                       </div>
@@ -253,7 +259,7 @@ export default function HomePage() {
                     href={link.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+                    className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-200 flex items-center gap-2 font-semibold shadow-lg hover:shadow-xl"
                   >
                     <Download className="w-4 h-4" />
                     Download
@@ -267,21 +273,21 @@ export default function HomePage() {
 
       {/* File Types Statistics */}
       {fileTypes.length > 0 && (
-        <div className="mt-12 bg-white p-8 rounded-lg shadow-lg">
-          <h2 className="text-xl font-semibold text-gray-800 mb-6">File Type Distribution</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+        <div className="mt-12 bg-white p-8 rounded-xl shadow-xl border border-gray-100">
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">File Type Distribution</h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-6">
             {fileTypes.map((fileType) => (
               <a 
                 key={fileType.type} 
                 href={`/browse?type=${fileType.type}`}
-                className="text-center p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200 cursor-pointer transform hover:scale-105"
+                className="text-center p-6 rounded-xl hover:bg-gray-50 transition-all duration-200 cursor-pointer transform hover:scale-105 border border-gray-200 hover:border-gray-300 hover:shadow-lg"
               >
-                <div className="flex justify-center mb-2">
+                <div className="flex justify-center mb-3">
                   {getFileIcon(fileType.type)}
                 </div>
-                <p className="text-sm font-medium text-gray-700 capitalize">{fileType.type}</p>
-                <p className="text-lg font-bold text-gray-800">{fileType.count.toLocaleString()}</p>
-                <p className="text-xs text-blue-500 mt-1">Click to browse</p>
+                <p className="text-sm font-semibold text-gray-800 capitalize mb-1">{fileType.type}</p>
+                <p className="text-2xl font-bold text-gray-900 mb-1">{fileType.count.toLocaleString()}</p>
+                <p className="text-xs text-blue-600 font-medium">Click to browse →</p>
               </a>
             ))}
           </div>

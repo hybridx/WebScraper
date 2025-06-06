@@ -122,14 +122,14 @@ export default function BrowsePage() {
 
   const getFileIcon = (type: string) => {
     switch (type) {
-      case 'video': return <Video className="w-5 h-5 text-red-500" />;
-      case 'audio': return <Music className="w-5 h-5 text-green-500" />;
-      case 'image': return <Image className="w-5 h-5 text-blue-500" />;
-      case 'compressed': return <Archive className="w-5 h-5 text-yellow-500" />;
-      case 'text': return <FileText className="w-5 h-5 text-gray-500" />;
-      case 'executable': return <Code className="w-5 h-5 text-purple-500" />;
-      case 'disk': return <HardDrive className="w-5 h-5 text-orange-500" />;
-      default: return <FileText className="w-5 h-5 text-gray-500" />;
+      case 'video': return <Video className="w-5 h-5 text-red-600" />;
+      case 'audio': return <Music className="w-5 h-5 text-green-600" />;
+      case 'image': return <Image className="w-5 h-5 text-blue-600" />;
+      case 'compressed': return <Archive className="w-5 h-5 text-yellow-600" />;
+      case 'text': return <FileText className="w-5 h-5 text-gray-700" />;
+      case 'executable': return <Code className="w-5 h-5 text-purple-600" />;
+      case 'disk': return <HardDrive className="w-5 h-5 text-orange-600" />;
+      default: return <FileText className="w-5 h-5 text-gray-700" />;
     }
   };
 
@@ -220,18 +220,18 @@ export default function BrowsePage() {
     <div className="container mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">Browse All Files</h1>
-        <p className="text-gray-600">Browse through all crawled files with pagination</p>
+        <h1 className="text-4xl font-bold text-gray-900 mb-3 bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">Browse All Files</h1>
+        <p className="text-lg text-gray-700">Browse through all crawled files with advanced pagination and filtering</p>
         {selectedType !== 'all' && (
-          <div className="mt-4 flex items-center space-x-2">
-            <span className="text-sm text-gray-500">Filtering by:</span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-700">
+          <div className="mt-6 flex items-center space-x-3">
+            <span className="text-sm font-semibold text-gray-800">Filtering by:</span>
+            <span className="inline-flex items-center px-4 py-2 rounded-xl text-sm font-semibold bg-blue-100 text-blue-800 border border-blue-200">
               {getFileIcon(selectedType)}
               <span className="ml-2 capitalize">{selectedType}</span>
             </span>
             <button
               onClick={() => setSelectedType('all')}
-              className="text-sm text-blue-600 hover:text-blue-800 underline"
+              className="text-sm text-blue-600 hover:text-blue-800 underline font-medium"
             >
               Clear filter
             </button>
@@ -241,73 +241,77 @@ export default function BrowsePage() {
 
       {/* Stats Cards */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-blue-500">
-            <h3 className="text-2xl font-bold text-blue-600">{stats.totalLinks.toLocaleString()}</h3>
-            <p className="text-gray-600">Total Files</p>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-blue-500">
+            <h3 className="text-3xl font-bold text-blue-600 mb-2">{stats.totalLinks.toLocaleString()}</h3>
+            <p className="text-gray-700 font-medium">Total Files</p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-green-500">
-            <h3 className="text-2xl font-bold text-green-600">{stats.totalUrls.toLocaleString()}</h3>
-            <p className="text-gray-600">URLs Crawled</p>
+          <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-green-500">
+            <h3 className="text-3xl font-bold text-green-600 mb-2">{stats.totalUrls.toLocaleString()}</h3>
+            <p className="text-gray-700 font-medium">URLs Crawled</p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-yellow-500">
-            <h3 className="text-2xl font-bold text-yellow-600">{stats.pendingUrls.toLocaleString()}</h3>
-            <p className="text-gray-600">Pending URLs</p>
+          <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-yellow-500">
+            <h3 className="text-3xl font-bold text-yellow-600 mb-2">{stats.pendingUrls.toLocaleString()}</h3>
+            <p className="text-gray-700 font-medium">Pending URLs</p>
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-md border-l-4 border-red-500">
-            <h3 className="text-2xl font-bold text-red-600">{stats.errorUrls.toLocaleString()}</h3>
-            <p className="text-gray-600">Error URLs</p>
+          <div className="bg-white p-8 rounded-xl shadow-lg border-l-4 border-red-500">
+            <h3 className="text-3xl font-bold text-red-600 mb-2">{stats.errorUrls.toLocaleString()}</h3>
+            <p className="text-gray-700 font-medium">Error URLs</p>
           </div>
         </div>
       )}
 
       {/* Filter Controls */}
-      <div className="bg-white p-6 rounded-lg shadow-lg mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex items-center space-x-4">
-            <label htmlFor="type-filter" className="text-sm font-medium text-gray-700">
-              Filter by Type:
-            </label>
-            <select
-              id="type-filter"
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Types ({allFiles.length})</option>
-              {fileTypes.map(type => (
-                <option key={type.type} value={type.type}>
-                  {type.type.charAt(0).toUpperCase() + type.type.slice(1)} ({type.count})
-                </option>
-              ))}
-            </select>
+      <div className="bg-white p-8 rounded-xl shadow-xl mb-8 border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <div className="flex items-center space-x-3">
+              <label htmlFor="type-filter" className="text-sm font-semibold text-gray-800">
+                Filter by Type:
+              </label>
+              <select
+                id="type-filter"
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 font-medium min-w-40"
+              >
+                <option value="all">All Types ({allFiles.length})</option>
+                {fileTypes.map(type => (
+                  <option key={type.type} value={type.type}>
+                    {type.type.charAt(0).toUpperCase() + type.type.slice(1)} ({type.count})
+                  </option>
+                ))}
+              </select>
+            </div>
             
-            <label htmlFor="page-size" className="text-sm font-medium text-gray-700">
-              Per Page:
-            </label>
-            <select
-              id="page-size"
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1); // Reset to first page
-              }}
-              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
+            <div className="flex items-center space-x-3">
+              <label htmlFor="page-size" className="text-sm font-semibold text-gray-800">
+                Per Page:
+              </label>
+              <select
+                id="page-size"
+                value={itemsPerPage}
+                onChange={(e) => {
+                  setItemsPerPage(Number(e.target.value));
+                  setCurrentPage(1); // Reset to first page
+                }}
+                className="px-4 py-3 border-2 border-gray-300 rounded-xl bg-white text-gray-900 focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all duration-200 font-medium"
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={50}>50</option>
+              </select>
+            </div>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-4">
+            <span className="text-sm font-medium text-gray-700">
               Showing {filteredFiles.length} files ({itemsPerPage} per page)
             </span>
             {selectedFiles.size > 0 && (
               <button
                 onClick={downloadSelected}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center space-x-2"
+                className="bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition-all duration-200 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Selected ({selectedFiles.size})</span>
@@ -318,56 +322,56 @@ export default function BrowsePage() {
       </div>
 
       {/* File List */}
-      <div className="bg-white rounded-lg shadow-lg">
-        <div className="p-6 border-b border-gray-200">
+      <div className="bg-white rounded-xl shadow-xl border border-gray-100">
+        <div className="p-8 border-b border-gray-200">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold text-gray-800">
+            <h2 className="text-2xl font-bold text-gray-900">
               Files {((currentPage - 1) * itemsPerPage) + 1}-{Math.min(currentPage * itemsPerPage, filteredFiles.length)} of {filteredFiles.length}
             </h2>
             <button
               onClick={selectAllOnPage}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200"
+              className="bg-gray-600 text-white px-6 py-3 rounded-xl hover:bg-gray-700 transition-all duration-200 font-semibold shadow-lg"
             >
               {getCurrentPageFiles().every(file => selectedFiles.has(file.id)) ? 'Deselect Page' : 'Select Page'}
             </button>
           </div>
         </div>
         
-        <div className="p-6">
+        <div className="p-8">
           {loading ? (
-            <div className="text-center py-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-gray-600 mt-2">Loading files...</p>
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-700 font-medium">Loading files...</p>
             </div>
           ) : getCurrentPageFiles().length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-gray-600">No files found matching your criteria.</p>
+            <div className="text-center py-12">
+              <p className="text-gray-700 font-medium">No files found matching your criteria.</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {getCurrentPageFiles().map((file) => (
                 <div
                   key={file.id}
-                  className={`flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors duration-200 ${
-                    selectedFiles.has(file.id) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                  className={`flex items-center justify-between p-6 border-2 rounded-xl hover:bg-gray-50 transition-all duration-200 ${
+                    selectedFiles.has(file.id) ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex items-center space-x-4 flex-1 min-w-0">
+                  <div className="flex items-center space-x-5 flex-1 min-w-0">
                     <input
                       type="checkbox"
                       checked={selectedFiles.has(file.id)}
                       onChange={() => toggleFileSelection(file.id)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 focus:ring-2"
                     />
                     {getFileIcon(file.type)}
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-medium text-gray-800 truncate">{file.name}</h3>
-                      <p className="text-sm text-gray-500 truncate">{file.link}</p>
-                      <div className="flex items-center space-x-4 mt-1">
-                        <span className="inline-block px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                      <h3 className="font-semibold text-gray-900 truncate text-lg">{file.name}</h3>
+                      <p className="text-gray-700 truncate mt-1">{file.link}</p>
+                      <div className="flex items-center space-x-4 mt-2">
+                        <span className="inline-block px-3 py-1 text-xs font-semibold bg-gray-100 text-gray-800 rounded-full border">
                           {file.type}
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-sm text-gray-600">
                           {new Date(file.created_at).toLocaleDateString()}
                         </span>
                       </div>
@@ -377,7 +381,7 @@ export default function BrowsePage() {
                     href={file.link}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="ml-3 bg-blue-600 text-white px-3 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center space-x-2"
+                    className="ml-3 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition-all duration-200 flex items-center space-x-2 font-semibold shadow-lg hover:shadow-xl"
                   >
                     <ExternalLink className="w-4 h-4" />
                     <span>Open</span>
@@ -390,9 +394,9 @@ export default function BrowsePage() {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="p-6 border-t border-gray-200">
+          <div className="p-8 border-t border-gray-200 bg-gray-50 rounded-b-xl">
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-700">
+              <div className="text-sm font-medium text-gray-800">
                 Page {currentPage} of {totalPages}
               </div>
               
@@ -400,19 +404,19 @@ export default function BrowsePage() {
                 <button
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-3 border-2 border-gray-300 rounded-xl hover:bg-white hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
                 
                 {getPageNumbers().map(page => (
                   <button
                     key={page}
                     onClick={() => goToPage(page)}
-                    className={`px-4 py-2 border rounded-lg transition-colors duration-200 ${
+                    className={`px-4 py-3 border-2 rounded-xl transition-all duration-200 font-semibold ${
                       currentPage === page
-                        ? 'bg-blue-600 text-white border-blue-600'
-                        : 'border-gray-300 hover:bg-gray-50'
+                        ? 'bg-blue-600 text-white border-blue-600 shadow-lg'
+                        : 'border-gray-300 hover:bg-white hover:border-gray-400 text-gray-700 shadow-sm'
                     }`}
                   >
                     {page}
@@ -422,9 +426,9 @@ export default function BrowsePage() {
                 <button
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-3 border-2 border-gray-300 rounded-xl hover:bg-white hover:border-gray-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
             </div>
