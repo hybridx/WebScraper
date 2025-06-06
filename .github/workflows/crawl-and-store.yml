@@ -14,10 +14,6 @@ on:
   repository_dispatch:
     types: [crawl-request]
 
-env:
-  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-
 jobs:
   crawl:
     runs-on: ubuntu-latest
@@ -39,6 +35,8 @@ jobs:
       - name: 🕷️ Run crawler
         run: node scripts/github-crawler.js
         env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           CRAWL_URL: ${{ github.event.inputs.url || github.event.client_payload.url }}
           SOURCE: ${{ github.event.inputs.source || github.event.client_payload.source }}
           
