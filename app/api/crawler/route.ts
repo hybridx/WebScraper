@@ -1,20 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseManager } from '@/lib/database';
 
-// Dynamic imports for production compatibility
+// Dynamic imports for local development only
 let JSDOM: any;
 let jsdomAvailable = false;
 
-// Try to load JSDOM for local development
-try {
-  if (process.env.NODE_ENV === 'development') {
+// Only try to load JSDOM in development
+if (process.env.NODE_ENV === 'development') {
+  try {
     const jsdomModule = require('jsdom');
     JSDOM = jsdomModule.JSDOM;
     jsdomAvailable = true;
+    console.log('JSDOM loaded for development');
+  } catch (error) {
+    console.log('JSDOM not available, using regex parsing');
+    jsdomAvailable = false;
   }
-} catch (error) {
-  console.log('JSDOM not available, using regex parsing');
-  jsdomAvailable = false;
 }
 
 interface ExtractedLink {
@@ -46,6 +47,10 @@ function classifyFileType(url: string): string {
 }
 
 function parseWithJSDOM(html: string, baseUrl: string): { links: ExtractedLink[], subdirs: string[] } {
+  if (!jsdomAvailable) {
+    throw new Error('JSDOM not available');
+  }
+
   const extractedLinks: ExtractedLink[] = [];
   const subdirectories: string[] = [];
   
@@ -93,53 +98,47 @@ function parseWithRegex(html: string, baseUrl: string): { links: ExtractedLink[]
   const extractedLinks: ExtractedLink[] = [];
   const subdirectories: string[] = [];
   
-  // Enhanced regex patterns for different directory listing formats
-  const patterns = [
-    // Apache style: <a href="file.mp3">file.mp3</a>
-    /<a[^>]+href\s*=\s*["']([^"']+)["'][^>]*>([^<]*)</gi,
-    // Alternative format with extra attributes
-    /<a[^>]*href\s*=\s*["']([^"']+)["'][^>]*>.*?([^<]+?)</gi,
-  ];
+  // Robust regex pattern for Apache directory listings
+  const linkPattern = /<a\s+[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([^<]+)/gi;
+  
+  let match;
+  while ((match = linkPattern.exec(html)) !== null) {
+    const href = match[1];
+    let text = match[2];
+    
+    // Skip unwanted links
+    if (!href || href === '../' || href === '/' || href.startsWith('?') || 
+        href.startsWith('http') || href.startsWith('//') || 
+        href.startsWith('#') || href.startsWith('mailto:') ||
+        href.includes('javascript:')) {
+      continue;
+    }
 
-  for (const pattern of patterns) {
-    let match;
-    while ((match = pattern.exec(html)) !== null) {
-      const href = match[1];
-      let text = match[2]?.replace(/<[^>]*>/g, '').trim() || href;
-      
-      // Skip parent directory links, query params, and absolute URLs
-      if (href === '../' || href === '/' || href.startsWith('?') || 
-          href.startsWith('http') || href.startsWith('//') || 
-          href.startsWith('#') || href.startsWith('mailto:')) {
-        continue;
-      }
+    // Clean up the text
+    text = text.replace(/^\s*\[.*?\]\s*/, '').trim(); // Remove [DIR], [TXT] etc.
+    if (!text || text === href) {
+      text = decodeURIComponent(href);
+    }
 
-      // Clean up the filename text
-      text = text.replace(/^\s*\[.*?\]\s*/, '').trim(); // Remove [DIR] or [TXT] prefixes
-      if (!text || text === href) {
-        text = decodeURIComponent(href);
-      }
+    const completeLink = baseUrl.replace(/\/$/, '') + '/' + href;
 
-      const completeLink = baseUrl.replace(/\/$/, '') + '/' + href;
-
-      if (href.endsWith('/')) {
-        // It's a subdirectory
-        subdirectories.push(completeLink);
-      } else {
-        // It's a file
-        const fileType = classifyFileType(completeLink);
-        if (fileType !== "other") {
-          extractedLinks.push({
-            name: text,
-            link: completeLink,
-            type: fileType
-          });
-        }
+    if (href.endsWith('/')) {
+      // It's a subdirectory
+      subdirectories.push(completeLink);
+    } else {
+      // It's a file
+      const fileType = classifyFileType(completeLink);
+      if (fileType !== "other") {
+        extractedLinks.push({
+          name: text,
+          link: completeLink,
+          type: fileType
+        });
       }
     }
   }
 
-  // Remove duplicates based on link URL
+  // Remove duplicates
   const uniqueLinks = extractedLinks.filter((link, index, arr) => 
     arr.findIndex(l => l.link === link.link) === index
   );
@@ -154,18 +153,18 @@ async function crawlDirectoryListing(url: string): Promise<{ links: ExtractedLin
   try {
     console.log(`Fetching URL: ${url}`);
     
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    
     // Create AbortController for timeout
     const controller = new AbortController();
-    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-    const timeoutMs = isProduction ? 10000 : 15000; // Shorter timeout for Vercel
+    const timeoutMs = isProduction ? 8000 : 15000; // Conservative timeout for Vercel
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
-        'Accept-Encoding': 'gzip, deflate',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1'
       },
@@ -181,7 +180,7 @@ async function crawlDirectoryListing(url: string): Promise<{ links: ExtractedLin
     const html = await response.text();
     console.log(`Received ${html.length} characters of HTML`);
     
-    // Use JSDOM for local development, regex for production
+    // Use JSDOM only for local development
     if (jsdomAvailable && process.env.NODE_ENV === 'development') {
       console.log('Using JSDOM parsing (development)');
       return parseWithJSDOM(html, url);
@@ -269,26 +268,27 @@ export async function POST(request: NextRequest) {
       // Don't return error here, links were stored successfully
     }
 
-    // Crawl subdirectories with environment-specific limits
-    const maxSubdirs = isProduction ? 2 : 3; // More conservative in production
+    // Skip subdirectories in production to avoid timeout
     let subLinksCount = 0;
-    for (const subdir of subdirs.slice(0, maxSubdirs)) {
-      try {
-        const { links: subLinks } = await crawlDirectoryListing(subdir);
-        if (subLinks.length > 0) {
-          await db.addLinks(subLinks);
-          subLinksCount += subLinks.length;
+    if (!isProduction && subdirs.length > 0) {
+      for (const subdir of subdirs.slice(0, 2)) {
+        try {
+          const { links: subLinks } = await crawlDirectoryListing(subdir);
+          if (subLinks.length > 0) {
+            await db.addLinks(subLinks);
+            subLinksCount += subLinks.length;
+          }
+        } catch (error) {
+          console.error(`❌ Error crawling subdirectory ${subdir}:`, error);
+          await db.addErrorUrl(subdir, String(error));
         }
-      } catch (error) {
-        console.error(`❌ Error crawling subdirectory ${subdir}:`, error);
-        await db.addErrorUrl(subdir, String(error));
       }
     }
 
     const response = {
       success: true,
       links_found: links.length,
-      subdirs_crawled: Math.min(subdirs.length, maxSubdirs),
+      subdirs_found: subdirs.length,
       total_links: links.length + subLinksCount,
       message: `Successfully crawled ${url}`,
       parsing_method: jsdomAvailable && !isProduction ? 'JSDOM' : 'Regex'
@@ -299,19 +299,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('💥 Crawler API error:', error);
-    
-    // Log error in database if URL was provided
-    try {
-      const { url } = await request.json();
-      if (url) {
-        const db = DatabaseManager.getInstance();
-        await db.addErrorUrl(url, String(error));
-        await db.updateCrawledUrlStatus(url, 'error', String(error));
-      }
-    } catch {
-      // Ignore if we can't parse the request again
-    }
-
     return NextResponse.json(
       { 
         error: String(error),
