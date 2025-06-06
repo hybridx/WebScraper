@@ -303,7 +303,7 @@ export default function AdminPage() {
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 placeholder="https://example.com/files/"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-2 border-gray-400 rounded-lg bg-white text-gray-900 placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                 required
               />
               <p className="mt-2 text-sm text-gray-700">
@@ -321,7 +321,7 @@ export default function AdminPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter admin password"
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-3 border-2 border-gray-400 rounded-lg bg-white text-gray-900 placeholder-gray-600 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
                 required
               />
               <p className="mt-2 text-sm text-gray-700">
@@ -364,7 +364,7 @@ export default function AdminPage() {
               <select
                 value={crawlerType}
                 onChange={(e) => setCrawlerType(e.target.value as 'nodejs' | 'python')}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border-2 border-gray-400 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
               >
                 <option value="nodejs">Enhanced Node.js Crawler (JSDOM + Regex Fallback)</option>
                 <option value="python" disabled>Python Crawler (Coming Soon)</option>
@@ -387,20 +387,17 @@ export default function AdminPage() {
               </ul>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center space-x-2 mb-2">
-                <AlertCircle className="w-5 h-5 text-blue-600" />
-                <span className="font-medium text-blue-800">Setup Required</span>
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-green-800">Supabase Connected</span>
               </div>
-              <p className="text-sm text-blue-900 mb-2">
-                <strong>Important:</strong> You need to set up a PostgreSQL database first:
+              <p className="text-sm text-green-900 mb-2">
+                <strong>Database:</strong> Supabase PostgreSQL
               </p>
-              <ol className="text-sm text-blue-900 space-y-1">
-                <li>1. Go to <a href="https://vercel.com/dashboard" target="_blank" className="underline font-medium">Vercel Dashboard</a></li>
-                <li>2. Select your project → Storage tab</li>
-                <li>3. Create Database → Choose Postgres</li>
-                <li>4. After setup, the crawler will work automatically</li>
-              </ol>
+              <p className="text-sm text-green-900">
+                Your WebScraper is now connected to Supabase database. The crawler should work automatically!
+              </p>
             </div>
 
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">

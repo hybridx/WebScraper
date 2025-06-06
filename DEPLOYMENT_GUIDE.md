@@ -29,35 +29,32 @@
 - ✅ Enhanced error handling and recovery mechanisms
 - ✅ Better HTTP headers for improved compatibility
 
-## Database Setup Instructions
+## Database Setup Instructions (Supabase)
 
-### Step 1: Create Postgres Database
-1. Go to [Vercel Dashboard](https://vercel.com/dashboard)
-2. Select your `webscraper-app` project
-3. Navigate to **Storage** tab
-4. Click **Create Database**
-5. Choose **Postgres**
-6. Name: `webscraper-db` (or your preference)
-7. Select region closest to your users
-8. Click **Create**
+### Step 1: Set Up Supabase Database
+You need to configure Supabase environment variables:
 
-### Step 2: Verify Environment Variables
-After database creation, these should be automatically added:
-```
-POSTGRES_URL
-POSTGRES_PRISMA_URL
-POSTGRES_URL_NON_POOLING
-POSTGRES_USER
-POSTGRES_HOST
-POSTGRES_PASSWORD
-POSTGRES_DATABASE
-```
+1. **Create Supabase Project**: Go to [Supabase Dashboard](https://supabase.com/dashboard)
+2. **Get your credentials**:
+   - Project URL (starts with `https://[project-id].supabase.co`)
+   - Anon public key (starts with `eyJ...`)
 
-### Step 3: Database Schema
-The database will auto-initialize with these tables:
+3. **Set Environment Variables** in Vercel:
+   - `NEXT_PUBLIC_SUPABASE_URL=your_project_url`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key`
+
+### Step 2: Create Database Tables
+1. Go to your Supabase project dashboard
+2. Navigate to **SQL Editor**
+3. Copy and paste the content from `supabase-schema.sql`
+4. Click **Run** to create all tables and indexes
+
+### Step 3: Verify Tables Created
+After running the SQL, you should have:
 - `links` - Stores crawled file information
-- `crawled_urls` - Tracks URLs that have been crawled
+- `crawled_urls` - Tracks URLs that have been crawled  
 - `error_urls` - Logs failed crawl attempts
+- Proper indexes and RPC functions
 
 ## Features Available
 

@@ -9,10 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.10",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "@vercel/postgres": "^0.5.1",
     "autoprefixer": "^10.0.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
