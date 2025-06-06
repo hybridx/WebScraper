@@ -27,6 +27,7 @@ yarn-error.log*
 
 # local env files
 .env*.local
+.env
 
 # vercel
 .vercel
@@ -35,9 +36,17 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# database
-webscraper.db
-webscraper.db-journal
+# SQLite database files
+*.db
+*.db-journal
+
+# Test and temporary files
+test-*.js
+test-*.ts
+apply-*.js
+setup-*.js
+temp-*.js
+debug-*.js
 
 # python
 __pycache__/
