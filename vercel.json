@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/crawler.py": {
+      "runtime": "python3.9"
+    }
+  },
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "regions": ["iad1"],
+  "crons": []
+} 

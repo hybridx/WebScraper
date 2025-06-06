@@ -1,85 +1,247 @@
-# WebScraper
+# WebScraper - Next.js Directory Listing Crawler
 
-PROBLEM DEFINATION
+A modern web application that crawls directory listing pages ("index of /" pages) to extract and index media files, documents, and other downloadable content. Built with Next.js for easy deployment on Vercel.
 
-The web creates challenges for information retrieval. The amount of information on the web is growing rapidly, as well as the number of new users inexperienced in the art of web research because people have different domains that they work in. People are likely to surf the web using high quality human maintained indices such as Yahoo or with search engines. Google takes it a step further with crawling and Page Rank. Because Google crawl’s these pages, it also gets into links with direct access to media files and text documents, which can be easily found by using Google dorks. But searching in this manner proves difficult for many users.
+## 🚀 Features
 
+- **Modern Web Interface**: Beautiful, responsive UI built with Next.js and Tailwind CSS
+- **Smart File Detection**: Automatically categorizes files by type (video, audio, images, documents, etc.)
+- **Advanced Search**: Search through crawled files with filtering by file type
+- **Bulk Download**: Select multiple files and generate download links in various formats
+- **Admin Panel**: Simple password-protected interface to add new URLs for crawling
+- **SQLite Database**: Lightweight, serverless database that works perfectly with Vercel
+- **Python Crawler**: Powerful web scraper using BeautifulSoup for extracting file links
+- **Real-time Stats**: Dashboard showing crawling progress and database statistics
 
-WebScraper  
-WebScraper is an application which crawls and these webpages and stores links, that would prove useful later for downloading.
-This is where the system proves smart, by only storing their links and not the entire files.
-    • Crawler
-Running a web crawler is a challenging task. There are tricky performance and reliability issues and even more importantly, there are social issues. Crawling is the most fragile application since it involves interacting with hundreds of thousands of web servers and various name servers which are all beyond the control of the system. It is difficult to measure how long crawling took overall because disks filled up, name servers crashed, or any number of other problems which stopped the system.
+## 🎯 Use Cases
 
-Existing system & need for new system
+- Index and search through large file repositories
+- Create downloadable file databases from directory listings
+- Batch download multiple files using wget, aria2, or other download managers
+- Monitor and organize scattered file collections across different servers
 
-We are against the likes of Google but still Google dorks aren’t as useable as the WebScraper.
+## 🏗️ Architecture
 
-Need For New System:
-Making the same things easier and more usable is just another way of improving ease of access.  Using only the links to these media files has been a great triumph as it only stores media links which are easily downloadable. 
+- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
+- **Backend**: Next.js API routes with TypeScript
+- **Database**: SQLite with better-sqlite3
+- **Crawler**: Python serverless function using BeautifulSoup
+- **Deployment**: Optimized for Vercel with zero configuration
 
-Scope of the System
-This system only focuses on Media Links which are hosted in different websites. The system doesn’t worry about what the content is until and unless it is a media file or some text based document (pdf,docx etc).
+## 📦 Installation
 
+### Quick Deploy to Vercel
 
-FEASIBILITY STUDY
-    1) Technical feasibility:  
-The technologies used in the project are very well documented and tested. The consistency provided by Beautiful Soup (https://pypi.org/project/beautifulsoup4/) has been really helpful for the developers.
-The technology used (i.e. python) enables developers for rapid development and has huge support in the community.  
-2)    Economic Feasibility:
-The System is a every growing system because of the crawler that is crawling the pages consistently and storing them in the database. But this application could easily be monetised by using advertisement, which would help with the systems hardware resources. 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/webscraper-nextjs)
 
-3)    Operational feasibility:
-  The developed project is a web application. The basic knowledge of computer is enough for the user to use the application. Application runs only in the browser as a web page and doesn’t affect the execution of other programs, No special permission/ setups installation is required. No special training to the user is required hence the proposed system is operationally feasible.
+### Local Development
 
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/your-username/webscraper-nextjs.git
+   cd webscraper-nextjs
+   ```
 
-Hardware & Software Setup Requirements (User):-
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-      Software (min):
-          1. Browser (e.g. Firefox,Chrome)
-      Hardware (min):
-          • 1 GB RAM(To support heavy browsers)
-          • 20 GB HDD(To support newer operating systems)
-          • Intel P4 or above
+3. **Install Python dependencies**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Hardware & Software Setup Requirements (System Development):-
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
 
-    Software (min):
-          1 Python3.5 and above
-          2 Beautiful Soup 4
-          3 MongoDB
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
-    Hardware (min):
-        • 1 GB RAM(To support heavy browsers) (4 GB recommended)
-        • 20 GB HDD(To support newer operating systems)
-        • Storage for Mongodb according to the how much the system will scale  
-        • Intel Core 2 Duo processor and above
+## 🌐 Deployment on Vercel
 
+### One-Click Deployment
 
-Testing
- The most important measure of a search engine is the quality of its search results. While a complete user evaluation is beyond
- the scope of this paper, our own experience with WebScraper has shown it to produce good results for media search and has a lot
- of improvement. The numbers of results are considerably small. 
-Aside from search quality, WebScraper is designed to scale cost effectively to the size of the Web as it grows.
-In just three URL’s our crawler was able to index approximately 15000 links. It is important for a search engine to crawl and
-index efficiently. This way information can be kept up to date and major changes to the system can be tested relatively quickly.
+1. Fork this repository to your GitHub account
+2. Visit [vercel.com](https://vercel.com) and import your forked repository
+3. Vercel will automatically detect the Next.js configuration
+4. Deploy! Your app will be live in minutes
 
+### Manual Deployment
 
+1. **Install Vercel CLI**
+   ```bash
+   npm i -g vercel
+   ```
 
-CONCLUSION
+2. **Deploy to Vercel**
+   ```bash
+   vercel
+   ```
 
-WebScraper is designed to be a scalable search engine. The primary goal is to provide high quality search results over a rapidly
-growing World Wide Web. 
+3. **Follow the prompts** to configure your deployment
 
+### Environment Variables
 
+The application works out of the box without any environment variables. The admin password is set to `admin123` by default. To change it, you can modify the password check in `app/api/admin/add-url/route.ts`.
 
-REFERENCE
+## 📖 Usage Guide
 
+### 1. Admin Panel
+- Navigate to `/admin`
+- Enter the admin password (default: `admin123`)
+- Add URLs of directory listing pages to crawl
+- Monitor crawling progress through the stats dashboard
 
-    • http://stackoverflow.com
-    • https://use-the-index-luke.com/sql/testing-scalability
-    • http://infolab.stanford.edu/~backrub/google.html
-    • https://pypi.org/project/beautifulsoup4/
-    
-## TODO
-- https://typesense.org/downloads/
+### 2. Search Files
+- Use the main search page to find files
+- Filter by file type (video, audio, image, etc.)
+- View detailed file information and direct download links
+
+### 3. Bulk Download
+- Visit the `/download` page
+- Select multiple files you want to download
+- Choose your preferred download format:
+  - **TXT**: Simple list of URLs
+  - **wget script**: Ready-to-run bash script
+  - **aria2**: Input file for aria2 download manager
+
+### 4. File Types Supported
+
+- **Video**: mp4, mkv, avi, mov, mpg, mpeg, wmv, m4v, 3gp
+- **Audio**: mp3, wav, ogg, m4a, aac, flac, wma
+- **Images**: jpg, png, gif, bmp, svg, ico, tiff
+- **Documents**: pdf, doc, docx, txt, rtf, odt
+- **Compressed**: zip, rar, tar.gz, 7z, deb, rpm
+- **Executables**: exe, apk, deb, dmg, jar
+- **Disk Images**: iso, img, dmg, toast
+
+## 🔧 Configuration
+
+### Database
+
+The application uses SQLite stored in `webscraper.db`. The database is automatically created and initialized on first run.
+
+### Crawler Settings
+
+The Python crawler is configured to:
+- Respect robots.txt (configurable)
+- Use proper User-Agent headers
+- Handle timeouts and errors gracefully
+- Limit subdirectory crawling depth to prevent infinite loops
+
+### Search Configuration
+
+- Default search limit: 50 results
+- Bulk download limit: 1000 files
+- Case-insensitive search
+- Partial matching on file names and URLs
+
+## 🛠️ Development
+
+### Project Structure
+
+```
+webscraper-nextjs/
+├── app/                    # Next.js app directory
+│   ├── admin/             # Admin panel pages
+│   ├── download/          # Bulk download page
+│   ├── api/               # API routes
+│   │   ├── search/        # Search functionality
+│   │   ├── stats/         # Statistics API
+│   │   └── admin/         # Admin API routes
+│   ├── globals.css        # Global styles
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page (search)
+├── api/                   # Python serverless functions
+│   └── crawler.py         # Web crawler
+├── lib/                   # Utilities and database
+│   └── database.ts        # SQLite database manager
+├── public/                # Static assets
+├── package.json           # Node.js dependencies
+├── requirements.txt       # Python dependencies
+├── tailwind.config.js     # Tailwind CSS configuration
+├── tsconfig.json          # TypeScript configuration
+└── next.config.js         # Next.js configuration
+```
+
+### Adding New File Types
+
+To add support for new file types:
+
+1. Update the `classify_file_type` function in `api/crawler.py`
+2. Add the new type to the search filters in the frontend components
+3. Optionally add new icons in the `getFileIcon` functions
+
+### Customizing the UI
+
+The UI is built with Tailwind CSS. Key files to modify:
+- `app/globals.css` - Global styles and CSS variables
+- `app/layout.tsx` - Navigation and overall layout
+- Individual page components for specific functionality
+
+## 🔐 Security Considerations
+
+- **Admin Authentication**: Currently uses a simple password. For production, implement proper authentication
+- **Input Validation**: All URLs are validated before crawling
+- **Rate Limiting**: Consider implementing rate limiting for the crawler
+- **CORS**: API routes are configured to handle CORS appropriately
+
+## 🚨 Limitations
+
+- **Vercel Function Timeout**: Serverless functions have execution time limits
+- **Database Size**: SQLite has size limitations on some platforms
+- **Concurrent Crawling**: Limited by serverless function concurrency
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Database not found**
+   - Ensure write permissions in the deployment environment
+   - Check if the database file is being created properly
+
+2. **Crawler timeout**
+   - Some directory listings may take longer to crawl
+   - Consider implementing queue-based processing for large sites
+
+3. **Search not working**
+   - Verify the database has been initialized
+   - Check if there are any crawled URLs in the database
+
+### Debug Mode
+
+Enable debug logging by setting the `DEBUG` environment variable:
+```bash
+DEBUG=1 npm run dev
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes and commit: `git commit -am 'Add feature'`
+4. Push to the branch: `git push origin feature-name`
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- Built with [Next.js](https://nextjs.org/)
+- Styled with [Tailwind CSS](https://tailwindcss.com/)
+- Icons from [Lucide React](https://lucide.dev/)
+- Web scraping with [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)
+- Database with [better-sqlite3](https://github.com/JoshuaWise/better-sqlite3)
+
+## 📞 Support
+
+For support, please open an issue on GitHub or contact the maintainers.
+
+---
+
+**Happy Crawling! 🕷️**
