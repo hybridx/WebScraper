@@ -2,7 +2,7 @@
 
 ## 🚀 Your app is now deployed!
 
-**Production URL**: https://webscraper-a2nsc9rrv-hybridxs-projects.vercel.app
+**Production URL**: https://webscraper-app.vercel.app/
 
 ## What Changed for Vercel Deployment
 
@@ -21,6 +21,13 @@
 - ✅ Updated `vercel.json` for Next.js deployment
 - ✅ Removed problematic Python runtime configuration
 - ✅ Optimized for serverless functions
+
+### 4. Enhanced Crawler System
+- ✅ Improved Node.js crawler with JSDOM parsing
+- ✅ Added regex fallback for complex HTML structures
+- ✅ Implemented proper timeout handling with AbortController
+- ✅ Enhanced error handling and recovery mechanisms
+- ✅ Better HTTP headers for improved compatibility
 
 ## Database Setup Instructions
 
