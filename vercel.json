@@ -25,17 +25,12 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "Content-Type, Authorization"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
         }
       ]
-    }
-  ],
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/$1",
-      "headers": {
-        "Cache-Control": "no-cache"
-      }
     }
   ],
   "github": {
