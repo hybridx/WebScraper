@@ -145,13 +145,12 @@ export default function AdminPage() {
         return;
       }
 
-      showMessage(`Starting to crawl ${pendingUrls.length} URLs...`, 'success');
+      showMessage(`🚀 Triggering GitHub Actions to crawl ${pendingUrls.length} URLs...`, 'success');
 
-      // Crawl each pending URL
-      for (const urlObj of pendingUrls.slice(0, 3)) { // Limit to 3 URLs to avoid timeouts
+      // Trigger GitHub Actions workflow for each pending URL
+      for (const urlObj of pendingUrls.slice(0, 5)) { // Limit to 5 URLs
         try {
-          const crawlerEndpoint = crawlerType === 'python' ? '/api/crawler.py' : '/api/crawler';
-          const response = await fetch(crawlerEndpoint, {
+          const response = await fetch('/api/trigger-crawl', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -161,35 +160,32 @@ export default function AdminPage() {
 
           const result = await response.json();
           if (result.success) {
-            showMessage(`Successfully crawled ${urlObj.url}: ${result.total_links} files found`, 'success');
+            showMessage(`✅ GitHub workflow triggered for ${urlObj.url}. Check GitHub Actions tab for progress.`, 'success');
           } else {
             const errorMsg = result.error || 'Unknown error';
-            if (errorMsg.includes('SETUP_REQUIRED')) {
-              showMessage(`⚠️ Setup Required: Please configure Supabase environment variables in Vercel dashboard`, 'error');
-            } else if (errorMsg.includes('TABLES_MISSING')) {
-              showMessage(`⚠️ Database Setup: Please run the SQL schema in your Supabase dashboard`, 'error');
-            } else if (result.setup_required) {
-              showMessage(`Database setup required: ${result.error}`, 'error');
-            } else if (result.crawl_error) {
-              showMessage(`Crawling failed for ${urlObj.url}: ${result.error}`, 'error');
-            } else if (result.storage_error) {
-              showMessage(`Database storage failed for ${urlObj.url}: ${result.error}`, 'error');
+            if (errorMsg.includes('GitHub token not configured')) {
+              showMessage(`⚠️ Setup Required: Please configure GITHUB_TOKEN environment variable in Vercel dashboard`, 'error');
             } else {
-              showMessage(`Failed to crawl ${urlObj.url}: ${result.error}`, 'error');
+              showMessage(`Failed to trigger workflow for ${urlObj.url}: ${result.error}`, 'error');
             }
           }
         } catch (error) {
-          showMessage(`Error crawling ${urlObj.url}: ${String(error)}`, 'error');
+          showMessage(`Error triggering workflow for ${urlObj.url}: ${String(error)}`, 'error');
         }
       }
 
-      // Refresh data
-      fetchStats();
-      fetchUrls();
+      // Show instructions
+      showMessage(`🕐 GitHub Actions workflows are running. Files will appear in 2-3 minutes. Check GitHub repository Actions tab for progress.`, 'success');
+
+      // Refresh data after a delay
+      setTimeout(() => {
+        fetchStats();
+        fetchUrls();
+      }, 5000);
       
     } catch (error) {
-      console.error('Error starting crawler:', error);
-      showMessage('Failed to start crawling. Please try again.', 'error');
+      console.error('Error triggering workflows:', error);
+      showMessage('Failed to trigger crawling workflows. Please try again.', 'error');
     } finally {
       setCrawling(false);
     }
@@ -382,31 +378,22 @@ export default function AdminPage() {
           </form>
         </div>
 
-        {/* Crawler Control */}
+        {/* GitHub Actions Crawler Control */}
         <div className="bg-white p-8 rounded-lg shadow-lg">
           <h2 className="text-xl font-semibold text-gray-800 mb-6 flex items-center space-x-2">
             <Play className="w-5 h-5" />
-            <span>Crawler Control</span>
+            <span>GitHub Actions Crawler</span>
           </h2>
 
           <div className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Crawler Type
-              </label>
-              <select
-                value={crawlerType}
-                onChange={(e) => setCrawlerType(e.target.value as 'nodejs' | 'python')}
-                className="w-full px-4 py-2 border-2 border-gray-400 rounded-lg bg-white text-gray-900 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:outline-none"
-              >
-                <option value="nodejs">Enhanced Node.js Crawler (JSDOM + Regex Fallback)</option>
-                <option value="python" disabled>Python Crawler (Coming Soon)</option>
-              </select>
-              <p className="mt-1 text-sm text-gray-700">
-                {crawlerType === 'nodejs' 
-                  ? 'Enhanced Node.js crawler with JSDOM parsing and regex fallback for maximum compatibility'
-                  : 'Python crawler is currently unavailable on Vercel serverless platform'
-                }
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <CheckCircle className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-800">GitHub Actions Integration</span>
+              </div>
+              <p className="text-sm text-blue-900">
+                Crawling now runs via GitHub Actions workflows, bypassing Vercel serverless limitations.
+                This provides better reliability and handles authentication issues.
               </p>
             </div>
 
@@ -414,9 +401,10 @@ export default function AdminPage() {
               <h3 className="font-medium text-gray-800 mb-2">How it works:</h3>
               <ul className="text-sm text-gray-800 space-y-1">
                 <li>• Add URLs to the crawl queue using the form on the left</li>
-                <li>• The crawler will scan directory listings for media files</li>
-                <li>• Files are automatically categorized by type</li>
-                <li>• Use the search page to find and download files</li>
+                <li>• Click "Start GitHub Crawl" to trigger workflows</li>
+                <li>• GitHub Actions will crawl URLs and store results in database</li>
+                <li>• Files appear in 2-3 minutes after workflow completion</li>
+                <li>• Check GitHub repository Actions tab for progress</li>
               </ul>
             </div>
 
@@ -494,15 +482,20 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="flex items-center space-x-2 mb-2">
-                <AlertCircle className="w-5 h-5 text-yellow-600" />
-                <span className="font-medium text-yellow-800">Note</span>
+                <CheckCircle className="w-5 h-5 text-green-600" />
+                <span className="font-medium text-green-800">GitHub Actions Setup</span>
               </div>
-              <p className="text-sm text-yellow-900">
-                The crawler runs automatically when URLs are added. 
-                Check the stats above to monitor progress.
+              <p className="text-sm text-green-900 mb-2">
+                <strong>Required environment variables in Vercel:</strong>
               </p>
+              <ul className="text-sm text-green-900 space-y-1 mb-3">
+                <li>• <code className="bg-green-100 px-1 rounded">GITHUB_TOKEN</code> - GitHub Personal Access Token</li>
+                <li>• <code className="bg-green-100 px-1 rounded">GITHUB_REPOSITORY</code> - Repository name (owner/repo)</li>
+                <li>• <code className="bg-green-100 px-1 rounded">NEXT_PUBLIC_SUPABASE_URL</code> - Supabase URL (as GitHub secret)</li>
+                <li>• <code className="bg-green-100 px-1 rounded">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> - Supabase key (as GitHub secret)</li>
+              </ul>
             </div>
 
             <button
@@ -513,12 +506,12 @@ export default function AdminPage() {
               {crawling ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Crawling with {crawlerType === 'nodejs' ? 'Node.js' : 'Python'}...</span>
+                  <span>Triggering GitHub Actions...</span>
                 </>
               ) : (
                 <>
                   <Play className="w-4 h-4" />
-                  <span>Start Manual Crawl ({crawlerType === 'nodejs' ? 'Node.js' : 'Python'})</span>
+                  <span>🚀 Start GitHub Crawl</span>
                 </>
               )}
             </button>

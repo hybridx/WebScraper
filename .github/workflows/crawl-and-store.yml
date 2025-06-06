@@ -1,0 +1,49 @@
+name: 🕷️ Crawl and Store Files
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: 'URL to crawl'
+        required: true
+        type: string
+      source:
+        description: 'Source (app or manual)'
+        default: 'manual'
+        type: string
+  repository_dispatch:
+    types: [crawl-request]
+
+env:
+  NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    name: 🚀 Crawl Directory and Store Files
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: 🔧 Install dependencies
+        run: npm ci
+        
+      - name: 🕷️ Run crawler
+        run: node scripts/github-crawler.js
+        env:
+          CRAWL_URL: ${{ github.event.inputs.url || github.event.client_payload.url }}
+          SOURCE: ${{ github.event.inputs.source || github.event.client_payload.source }}
+          
+      - name: 📊 Display results
+        run: |
+          echo "✅ Crawl completed successfully!"
+          echo "🔗 URL: ${{ github.event.inputs.url || github.event.client_payload.url }}"
+          echo "📱 Source: ${{ github.event.inputs.source || github.event.client_payload.source }}" 
