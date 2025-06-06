@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@types/jsdom": "^21.1.6",
+    "better-sqlite3": "^11.10.0",
     "eslint": "^8",
     "eslint-config-next": "14.0.0",
     "tsx": "^4.19.4",
