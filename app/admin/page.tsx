@@ -135,7 +135,15 @@ export default function AdminPage() {
           if (result.success) {
             showMessage(`Successfully crawled ${urlObj.url}: ${result.total_links} files found`, 'success');
           } else {
-            showMessage(`Failed to crawl ${urlObj.url}: ${result.error}`, 'error');
+            if (result.setup_required) {
+              showMessage(`Database setup required: ${result.error}`, 'error');
+            } else if (result.crawl_error) {
+              showMessage(`Crawling failed for ${urlObj.url}: ${result.error}`, 'error');
+            } else if (result.storage_error) {
+              showMessage(`Database storage failed for ${urlObj.url}: ${result.error}`, 'error');
+            } else {
+              showMessage(`Failed to crawl ${urlObj.url}: ${result.error}`, 'error');
+            }
           }
         } catch (error) {
           showMessage(`Error crawling ${urlObj.url}: ${String(error)}`, 'error');
@@ -298,7 +306,7 @@ export default function AdminPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-700">
                 Enter the URL of a directory listing page (e.g., Apache directory index)
               </p>
             </div>
@@ -316,7 +324,7 @@ export default function AdminPage() {
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 required
               />
-              <p className="mt-2 text-sm text-gray-500">
+              <p className="mt-2 text-sm text-gray-700">
                 Default password: admin123
               </p>
             </div>
@@ -361,7 +369,7 @@ export default function AdminPage() {
                 <option value="nodejs">Enhanced Node.js Crawler (JSDOM + Regex Fallback)</option>
                 <option value="python" disabled>Python Crawler (Coming Soon)</option>
               </select>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-1 text-sm text-gray-700">
                 {crawlerType === 'nodejs' 
                   ? 'Enhanced Node.js crawler with JSDOM parsing and regex fallback for maximum compatibility'
                   : 'Python crawler is currently unavailable on Vercel serverless platform'
@@ -371,7 +379,7 @@ export default function AdminPage() {
 
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-medium text-gray-800 mb-2">How it works:</h3>
-              <ul className="text-sm text-gray-600 space-y-1">
+              <ul className="text-sm text-gray-800 space-y-1">
                 <li>• Add URLs to the crawl queue using the form on the left</li>
                 <li>• The crawler will scan directory listings for media files</li>
                 <li>• Files are automatically categorized by type</li>
@@ -379,12 +387,28 @@ export default function AdminPage() {
               </ul>
             </div>
 
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertCircle className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-800">Setup Required</span>
+              </div>
+              <p className="text-sm text-blue-900 mb-2">
+                <strong>Important:</strong> You need to set up a PostgreSQL database first:
+              </p>
+              <ol className="text-sm text-blue-900 space-y-1">
+                <li>1. Go to <a href="https://vercel.com/dashboard" target="_blank" className="underline font-medium">Vercel Dashboard</a></li>
+                <li>2. Select your project → Storage tab</li>
+                <li>3. Create Database → Choose Postgres</li>
+                <li>4. After setup, the crawler will work automatically</li>
+              </ol>
+            </div>
+
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <div className="flex items-center space-x-2 mb-2">
                 <AlertCircle className="w-5 h-5 text-yellow-600" />
                 <span className="font-medium text-yellow-800">Note</span>
               </div>
-              <p className="text-sm text-yellow-700">
+              <p className="text-sm text-yellow-900">
                 The crawler runs automatically when URLs are added. 
                 Check the stats above to monitor progress.
               </p>

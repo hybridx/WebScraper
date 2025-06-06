@@ -161,17 +161,60 @@ export async function POST(request: NextRequest) {
 
     console.log(`Starting crawl of: ${url}`);
 
+    // Test database connection first
+    let db: DatabaseManager;
+    try {
+      db = DatabaseManager.getInstance();
+      await db.initialize();
+      console.log('Database connection successful');
+    } catch (dbError) {
+      console.error('Database connection failed:', dbError);
+      return NextResponse.json({
+        success: false,
+        error: `Database connection failed: ${String(dbError)}. Please set up PostgreSQL database in Vercel dashboard.`,
+        setup_required: true
+      }, { status: 500 });
+    }
+
     // Crawl the main URL
-    const { links, subdirs } = await crawlDirectoryListing(url);
+    console.log('Starting directory crawl...');
+    let links, subdirs;
+    try {
+      const crawlResult = await crawlDirectoryListing(url);
+      links = crawlResult.links;
+      subdirs = crawlResult.subdirs;
+      console.log(`Crawl successful: found ${links.length} files and ${subdirs.length} subdirectories`);
+    } catch (crawlError) {
+      console.error('Crawling failed:', crawlError);
+      return NextResponse.json({
+        success: false,
+        error: `Failed to crawl URL: ${String(crawlError)}`,
+        crawl_error: true
+      }, { status: 500 });
+    }
 
     // Store links in database
-    const db = DatabaseManager.getInstance();
     if (links.length > 0) {
-      await db.addLinks(links);
+      try {
+        await db.addLinks(links);
+        console.log(`Successfully stored ${links.length} links in database`);
+      } catch (storeError) {
+        console.error('Failed to store links:', storeError);
+        return NextResponse.json({
+          success: false,
+          error: `Failed to store links in database: ${String(storeError)}`,
+          storage_error: true
+        }, { status: 500 });
+      }
     }
 
     // Update URL status
-    await db.updateCrawledUrlStatus(url, 'completed');
+    try {
+      await db.updateCrawledUrlStatus(url, 'completed');
+    } catch (statusError) {
+      console.error('Failed to update URL status:', statusError);
+      // Don't return error here, links were stored successfully
+    }
 
     // Crawl a limited number of subdirectories to prevent infinite recursion
     let subLinksCount = 0;
