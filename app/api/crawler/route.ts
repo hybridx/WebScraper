@@ -1,6 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { DatabaseManager } from '@/lib/database';
-import { JSDOM } from 'jsdom';
+
+// Dynamic imports for production compatibility
+let JSDOM: any;
+let jsdomAvailable = false;
+
+// Try to load JSDOM for local development
+try {
+  if (process.env.NODE_ENV === 'development') {
+    const jsdomModule = require('jsdom');
+    JSDOM = jsdomModule.JSDOM;
+    jsdomAvailable = true;
+  }
+} catch (error) {
+  console.log('JSDOM not available, using regex parsing');
+  jsdomAvailable = false;
+}
 
 interface ExtractedLink {
   name: string;
@@ -30,57 +45,127 @@ function classifyFileType(url: string): string {
   }
 }
 
+function parseWithJSDOM(html: string, baseUrl: string): { links: ExtractedLink[], subdirs: string[] } {
+  const extractedLinks: ExtractedLink[] = [];
+  const subdirectories: string[] = [];
+  
+  try {
+    const dom = new JSDOM(html);
+    const document = dom.window.document;
+    const links = Array.from(document.querySelectorAll('a[href]')) as HTMLAnchorElement[];
+
+    for (const linkElement of links) {
+      const href = linkElement.getAttribute('href');
+      if (!href) continue;
+
+      // Skip parent directory links and absolute URLs
+      if (href === '../' || href.startsWith('/') || href.startsWith('http')) {
+        continue;
+      }
+
+      const completeLink = baseUrl.replace(/\/$/, '') + '/' + href;
+
+      if (href.endsWith('/')) {
+        // It's a subdirectory
+        subdirectories.push(completeLink);
+      } else {
+        // It's a file
+        const fileType = classifyFileType(completeLink);
+        if (fileType !== "other") {
+          extractedLinks.push({
+            name: linkElement.textContent || href,
+            link: completeLink,
+            type: fileType
+          });
+        }
+      }
+    }
+
+    console.log(`JSDOM parsed ${extractedLinks.length} files and ${subdirectories.length} subdirectories`);
+    return { links: extractedLinks, subdirs: subdirectories };
+  } catch (error) {
+    console.error('JSDOM parsing failed:', error);
+    throw error;
+  }
+}
+
 function parseWithRegex(html: string, baseUrl: string): { links: ExtractedLink[], subdirs: string[] } {
   const extractedLinks: ExtractedLink[] = [];
   const subdirectories: string[] = [];
   
-  // Regex to match href attributes in anchor tags
-  const hrefRegex = /<a[^>]+href\s*=\s*['"](.*?)['"][^>]*>(.*?)<\/a>/gi;
-  let match;
-  
-  while ((match = hrefRegex.exec(html)) !== null) {
-    const href = match[1];
-    const text = match[2].replace(/<[^>]*>/g, '').trim(); // Remove HTML tags from text
-    
-    // Skip parent directory links and absolute URLs
-    if (href === '../' || href.startsWith('/') || href.startsWith('http')) {
-      continue;
-    }
-    
-    const completeLink = baseUrl.replace(/\/$/, '') + '/' + href;
-    
-    if (href.endsWith('/')) {
-      // It's a subdirectory
-      subdirectories.push(completeLink);
-    } else {
-      // It's a file
-      const fileType = classifyFileType(completeLink);
-      if (fileType !== "other") {
-        extractedLinks.push({
-          name: text || href,
-          link: completeLink,
-          type: fileType
-        });
+  // Enhanced regex patterns for different directory listing formats
+  const patterns = [
+    // Apache style: <a href="file.mp3">file.mp3</a>
+    /<a[^>]+href\s*=\s*["']([^"']+)["'][^>]*>([^<]*)</gi,
+    // Alternative format with extra attributes
+    /<a[^>]*href\s*=\s*["']([^"']+)["'][^>]*>.*?([^<]+?)</gi,
+  ];
+
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(html)) !== null) {
+      const href = match[1];
+      let text = match[2]?.replace(/<[^>]*>/g, '').trim() || href;
+      
+      // Skip parent directory links, query params, and absolute URLs
+      if (href === '../' || href === '/' || href.startsWith('?') || 
+          href.startsWith('http') || href.startsWith('//') || 
+          href.startsWith('#') || href.startsWith('mailto:')) {
+        continue;
+      }
+
+      // Clean up the filename text
+      text = text.replace(/^\s*\[.*?\]\s*/, '').trim(); // Remove [DIR] or [TXT] prefixes
+      if (!text || text === href) {
+        text = decodeURIComponent(href);
+      }
+
+      const completeLink = baseUrl.replace(/\/$/, '') + '/' + href;
+
+      if (href.endsWith('/')) {
+        // It's a subdirectory
+        subdirectories.push(completeLink);
+      } else {
+        // It's a file
+        const fileType = classifyFileType(completeLink);
+        if (fileType !== "other") {
+          extractedLinks.push({
+            name: text,
+            link: completeLink,
+            type: fileType
+          });
+        }
       }
     }
   }
-  
-  return { links: extractedLinks, subdirs: subdirectories };
+
+  // Remove duplicates based on link URL
+  const uniqueLinks = extractedLinks.filter((link, index, arr) => 
+    arr.findIndex(l => l.link === link.link) === index
+  );
+
+  const uniqueSubdirs = Array.from(new Set(subdirectories));
+
+  console.log(`Regex parsed ${uniqueLinks.length} files and ${uniqueSubdirs.length} subdirectories`);
+  return { links: uniqueLinks, subdirs: uniqueSubdirs };
 }
 
 async function crawlDirectoryListing(url: string): Promise<{ links: ExtractedLink[], subdirs: string[] }> {
   try {
+    console.log(`Fetching URL: ${url}`);
+    
     // Create AbortController for timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    const timeoutMs = isProduction ? 10000 : 15000; // Shorter timeout for Vercel
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'en-US,en;q=0.5',
         'Accept-Encoding': 'gzip, deflate',
-        'DNT': '1',
         'Connection': 'keep-alive',
         'Upgrade-Insecure-Requests': '1'
       },
@@ -94,50 +179,17 @@ async function crawlDirectoryListing(url: string): Promise<{ links: ExtractedLin
     }
 
     const html = await response.text();
+    console.log(`Received ${html.length} characters of HTML`);
     
-    // Try different parsing approaches for better compatibility
-    let document;
-    try {
-      const dom = new JSDOM(html);
-      document = dom.window.document;
-    } catch (jsdomError) {
-      console.log('JSDOM failed, trying manual parsing:', jsdomError);
-      // Fallback to regex parsing if JSDOM fails
+    // Use JSDOM for local development, regex for production
+    if (jsdomAvailable && process.env.NODE_ENV === 'development') {
+      console.log('Using JSDOM parsing (development)');
+      return parseWithJSDOM(html, url);
+    } else {
+      console.log('Using regex parsing (production)');
       return parseWithRegex(html, url);
     }
     
-    const links = Array.from(document.querySelectorAll('a[href]'));
-    const extractedLinks: ExtractedLink[] = [];
-    const subdirectories: string[] = [];
-
-    for (const linkElement of links) {
-      const href = linkElement.getAttribute('href');
-      if (!href) continue;
-
-      // Skip parent directory links and absolute URLs
-      if (href === '../' || href.startsWith('/') || href.startsWith('http')) {
-        continue;
-      }
-
-      const completeLink = url.replace(/\/$/, '') + '/' + href;
-
-      if (href.endsWith('/')) {
-        // It's a subdirectory
-        subdirectories.push(completeLink);
-      } else {
-        // It's a file
-        const fileType = classifyFileType(completeLink);
-        if (fileType !== "other") { // Only store media and document files
-          extractedLinks.push({
-            name: linkElement.textContent || href,
-            link: completeLink,
-            type: fileType
-          });
-        }
-      }
-    }
-
-    return { links: extractedLinks, subdirs: subdirectories };
   } catch (error) {
     console.error(`Error crawling ${url}:`, error);
     throw error;
@@ -159,33 +211,34 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 });
     }
 
-    console.log(`Starting crawl of: ${url}`);
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
+    console.log(`🚀 Starting crawl of: ${url} (${isProduction ? 'production' : 'development'})`);
 
     // Test database connection first
     let db: DatabaseManager;
     try {
       db = DatabaseManager.getInstance();
       await db.initialize();
-      console.log('Database connection successful');
+      console.log('✅ Database connection successful');
     } catch (dbError) {
-      console.error('Database connection failed:', dbError);
+      console.error('❌ Database connection failed:', dbError);
       return NextResponse.json({
         success: false,
-        error: `Database connection failed: ${String(dbError)}. Please set up PostgreSQL database in Vercel dashboard.`,
+        error: `Database connection failed: ${String(dbError)}`,
         setup_required: true
       }, { status: 500 });
     }
 
     // Crawl the main URL
-    console.log('Starting directory crawl...');
+    console.log('🕷️ Starting directory crawl...');
     let links, subdirs;
     try {
       const crawlResult = await crawlDirectoryListing(url);
       links = crawlResult.links;
       subdirs = crawlResult.subdirs;
-      console.log(`Crawl successful: found ${links.length} files and ${subdirs.length} subdirectories`);
+      console.log(`✅ Crawl successful: found ${links.length} files and ${subdirs.length} subdirectories`);
     } catch (crawlError) {
-      console.error('Crawling failed:', crawlError);
+      console.error('❌ Crawling failed:', crawlError);
       return NextResponse.json({
         success: false,
         error: `Failed to crawl URL: ${String(crawlError)}`,
@@ -197,9 +250,9 @@ export async function POST(request: NextRequest) {
     if (links.length > 0) {
       try {
         await db.addLinks(links);
-        console.log(`Successfully stored ${links.length} links in database`);
+        console.log(`✅ Successfully stored ${links.length} links in database`);
       } catch (storeError) {
-        console.error('Failed to store links:', storeError);
+        console.error('❌ Failed to store links:', storeError);
         return NextResponse.json({
           success: false,
           error: `Failed to store links in database: ${String(storeError)}`,
@@ -212,13 +265,14 @@ export async function POST(request: NextRequest) {
     try {
       await db.updateCrawledUrlStatus(url, 'completed');
     } catch (statusError) {
-      console.error('Failed to update URL status:', statusError);
+      console.error('⚠️ Failed to update URL status:', statusError);
       // Don't return error here, links were stored successfully
     }
 
-    // Crawl a limited number of subdirectories to prevent infinite recursion
+    // Crawl subdirectories with environment-specific limits
+    const maxSubdirs = isProduction ? 2 : 3; // More conservative in production
     let subLinksCount = 0;
-    for (const subdir of subdirs.slice(0, 3)) { // Limit to 3 subdirectories
+    for (const subdir of subdirs.slice(0, maxSubdirs)) {
       try {
         const { links: subLinks } = await crawlDirectoryListing(subdir);
         if (subLinks.length > 0) {
@@ -226,7 +280,7 @@ export async function POST(request: NextRequest) {
           subLinksCount += subLinks.length;
         }
       } catch (error) {
-        console.error(`Error crawling subdirectory ${subdir}:`, error);
+        console.error(`❌ Error crawling subdirectory ${subdir}:`, error);
         await db.addErrorUrl(subdir, String(error));
       }
     }
@@ -234,16 +288,17 @@ export async function POST(request: NextRequest) {
     const response = {
       success: true,
       links_found: links.length,
-      subdirs_crawled: Math.min(subdirs.length, 3),
+      subdirs_crawled: Math.min(subdirs.length, maxSubdirs),
       total_links: links.length + subLinksCount,
-      message: `Successfully crawled ${url}`
+      message: `Successfully crawled ${url}`,
+      parsing_method: jsdomAvailable && !isProduction ? 'JSDOM' : 'Regex'
     };
 
-    console.log('Crawl completed:', response);
+    console.log('🎉 Crawl completed:', response);
     return NextResponse.json(response);
 
   } catch (error) {
-    console.error('Crawler API error:', error);
+    console.error('💥 Crawler API error:', error);
     
     // Log error in database if URL was provided
     try {
