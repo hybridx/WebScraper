@@ -30,21 +30,81 @@ function classifyFileType(url: string): string {
   }
 }
 
+function parseWithRegex(html: string, baseUrl: string): { links: ExtractedLink[], subdirs: string[] } {
+  const extractedLinks: ExtractedLink[] = [];
+  const subdirectories: string[] = [];
+  
+  // Regex to match href attributes in anchor tags
+  const hrefRegex = /<a[^>]+href\s*=\s*['"](.*?)['"][^>]*>(.*?)<\/a>/gi;
+  let match;
+  
+  while ((match = hrefRegex.exec(html)) !== null) {
+    const href = match[1];
+    const text = match[2].replace(/<[^>]*>/g, '').trim(); // Remove HTML tags from text
+    
+    // Skip parent directory links and absolute URLs
+    if (href === '../' || href.startsWith('/') || href.startsWith('http')) {
+      continue;
+    }
+    
+    const completeLink = baseUrl.replace(/\/$/, '') + '/' + href;
+    
+    if (href.endsWith('/')) {
+      // It's a subdirectory
+      subdirectories.push(completeLink);
+    } else {
+      // It's a file
+      const fileType = classifyFileType(completeLink);
+      if (fileType !== "other") {
+        extractedLinks.push({
+          name: text || href,
+          link: completeLink,
+          type: fileType
+        });
+      }
+    }
+  }
+  
+  return { links: extractedLinks, subdirs: subdirectories };
+}
+
 async function crawlDirectoryListing(url: string): Promise<{ links: ExtractedLink[], subdirs: string[] }> {
   try {
+    // Create AbortController for timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+    
     const response = await fetch(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36'
-      }
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.47 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'Accept-Encoding': 'gzip, deflate',
+        'DNT': '1',
+        'Connection': 'keep-alive',
+        'Upgrade-Insecure-Requests': '1'
+      },
+      signal: controller.signal
     });
+    
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html);
-    const document = dom.window.document;
+    
+    // Try different parsing approaches for better compatibility
+    let document;
+    try {
+      const dom = new JSDOM(html);
+      document = dom.window.document;
+    } catch (jsdomError) {
+      console.log('JSDOM failed, trying manual parsing:', jsdomError);
+      // Fallback to regex parsing if JSDOM fails
+      return parseWithRegex(html, url);
+    }
     
     const links = Array.from(document.querySelectorAll('a[href]'));
     const extractedLinks: ExtractedLink[] = [];

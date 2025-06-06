@@ -28,6 +28,7 @@ export default function AdminPage() {
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [urls, setUrls] = useState<CrawledUrl[]>([]);
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
+  const [crawlerType, setCrawlerType] = useState<'nodejs' | 'python'>('nodejs');
 
   useEffect(() => {
     fetchStats();
@@ -121,7 +122,8 @@ export default function AdminPage() {
       // Crawl each pending URL
       for (const urlObj of pendingUrls.slice(0, 3)) { // Limit to 3 URLs to avoid timeouts
         try {
-          const response = await fetch('/api/crawler', {
+          const crawlerEndpoint = crawlerType === 'python' ? '/api/crawler.py' : '/api/crawler';
+          const response = await fetch(crawlerEndpoint, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -347,6 +349,26 @@ export default function AdminPage() {
           </h2>
 
           <div className="space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Crawler Type
+              </label>
+              <select
+                value={crawlerType}
+                onChange={(e) => setCrawlerType(e.target.value as 'nodejs' | 'python')}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
+                <option value="nodejs">Node.js Crawler (Fast, JSDOM)</option>
+                <option value="python">Python Crawler (Robust, BeautifulSoup)</option>
+              </select>
+              <p className="mt-1 text-sm text-gray-500">
+                {crawlerType === 'nodejs' 
+                  ? 'Fast JavaScript-based crawler using JSDOM for parsing'
+                  : 'More robust Python crawler using BeautifulSoup for complex HTML parsing'
+                }
+              </p>
+            </div>
+
             <div className="bg-gray-50 p-4 rounded-lg">
               <h3 className="font-medium text-gray-800 mb-2">How it works:</h3>
               <ul className="text-sm text-gray-600 space-y-1">
@@ -376,12 +398,12 @@ export default function AdminPage() {
               {crawling ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Crawling...</span>
+                  <span>Crawling with {crawlerType === 'nodejs' ? 'Node.js' : 'Python'}...</span>
                 </>
               ) : (
                 <>
                   <Play className="w-4 h-4" />
-                  <span>Start Manual Crawl</span>
+                  <span>Start Manual Crawl ({crawlerType === 'nodejs' ? 'Node.js' : 'Python'})</span>
                 </>
               )}
             </button>

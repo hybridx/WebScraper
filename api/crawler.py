@@ -3,13 +3,16 @@ import urllib.request
 import urllib.parse
 from urllib.error import URLError, HTTPError
 from bs4 import BeautifulSoup
-import sqlite3
+import psycopg2
 import os
 from http.server import BaseHTTPRequestHandler
 
 def get_db_connection():
-    db_path = os.path.join(os.getcwd(), 'webscraper.db')
-    return sqlite3.connect(db_path)
+    """Get PostgreSQL connection using Vercel environment variables"""
+    database_url = os.environ.get('POSTGRES_URL')
+    if not database_url:
+        raise Exception("POSTGRES_URL environment variable not found")
+    return psycopg2.connect(database_url)
 
 def classify_file_type(url):
     """Classify file type based on extension"""
@@ -78,7 +81,7 @@ def crawl_directory_listing(url):
         return [], []
 
 def store_links_in_db(links):
-    """Store extracted links in SQLite database"""
+    """Store extracted links in PostgreSQL database"""
     if not links:
         return
         
@@ -88,30 +91,48 @@ def store_links_in_db(links):
         
         for link in links:
             cursor.execute("""
-                INSERT OR IGNORE INTO links (name, link, type)
-                VALUES (?, ?, ?)
+                INSERT INTO links (name, link, type) 
+                VALUES (%s, %s, %s)
+                ON CONFLICT (link) DO NOTHING
             """, (link["name"], link["link"], link["type"]))
         
         conn.commit()
+        cursor.close()
         conn.close()
         
     except Exception as e:
         print(f"Database error: {str(e)}")
 
-def update_url_status(url, status):
+def update_url_status(url, status, error_message=None):
     """Update the status of a crawled URL"""
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
         cursor.execute("""
             UPDATE crawled_urls 
-            SET status = ?, last_crawled = datetime('now')
-            WHERE url = ?
-        """, (status, url))
+            SET status = %s, crawled_at = CURRENT_TIMESTAMP, error_message = %s
+            WHERE url = %s
+        """, (status, error_message, url))
         conn.commit()
+        cursor.close()
         conn.close()
     except Exception as e:
         print(f"Error updating URL status: {str(e)}")
+
+def add_error_url(url, error_message):
+    """Add error URL to database"""
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute("""
+            INSERT INTO error_urls (url, error_message) 
+            VALUES (%s, %s)
+        """, (url, error_message))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except Exception as e:
+        print(f"Error adding error URL: {str(e)}")
 
 class handler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -124,6 +145,7 @@ class handler(BaseHTTPRequestHandler):
             if not url:
                 self.send_response(400)
                 self.send_header('Content-type', 'application/json')
+                self.send_header('Access-Control-Allow-Origin', '*')
                 self.end_headers()
                 self.wfile.write(json.dumps({"error": "URL is required"}).encode())
                 return
@@ -138,18 +160,25 @@ class handler(BaseHTTPRequestHandler):
             update_url_status(url, 'completed')
             
             # Optionally crawl subdirectories (limit depth to prevent infinite recursion)
-            for subdir in subdirs[:5]:  # Limit to 5 subdirectories
-                sub_links, _ = crawl_directory_listing(subdir)
-                store_links_in_db(sub_links)
+            sub_links_count = 0
+            for subdir in subdirs[:3]:  # Limit to 3 subdirectories
+                try:
+                    sub_links, _ = crawl_directory_listing(subdir)
+                    store_links_in_db(sub_links)
+                    sub_links_count += len(sub_links)
+                except Exception as e:
+                    add_error_url(subdir, str(e))
             
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
             response = {
                 "success": True,
                 "links_found": len(links),
-                "subdirs_crawled": len(subdirs[:5]),
+                "subdirs_crawled": len(subdirs[:3]),
+                "total_links": len(links) + sub_links_count,
                 "message": f"Successfully crawled {url}"
             }
             
@@ -158,6 +187,7 @@ class handler(BaseHTTPRequestHandler):
         except Exception as e:
             self.send_response(500)
             self.send_header('Content-type', 'application/json')
+            self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
             
             error_response = {
@@ -169,11 +199,7 @@ class handler(BaseHTTPRequestHandler):
             
             # Log error in database
             try:
-                conn = get_db_connection()
-                cursor = conn.cursor()
-                cursor.execute("INSERT INTO error_urls (url, error_message) VALUES (?, ?)", 
-                             (data.get('url', 'unknown'), str(e)))
-                conn.commit()
-                conn.close()
+                add_error_url(data.get('url', 'unknown'), str(e))
+                update_url_status(data.get('url', 'unknown'), 'error', str(e))
             except:
                 pass 
