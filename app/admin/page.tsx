@@ -82,6 +82,15 @@ export default function AdminPage() {
         body: JSON.stringify({ url, password }),
       });
 
+      if (!response.ok) {
+        if (response.status === 405) {
+          showMessage('⚠️ API Error: Method not allowed. Please redeploy the application.', 'error');
+          return;
+        }
+        showMessage(`⚠️ Server Error: ${response.status} ${response.statusText}`, 'error');
+        return;
+      }
+
       const data = await response.json();
 
       if (data.success) {
@@ -90,7 +99,14 @@ export default function AdminPage() {
         fetchStats();
         fetchUrls();
       } else {
-        showMessage(data.error || 'Failed to add URL', 'error');
+        const errorMsg = data.error || 'Failed to add URL';
+        if (errorMsg.includes('SETUP_REQUIRED')) {
+          showMessage('⚠️ Setup Required: Please configure Supabase environment variables in Vercel dashboard', 'error');
+        } else if (errorMsg.includes('TABLES_MISSING')) {
+          showMessage('⚠️ Database Setup: Please run the SQL schema in your Supabase dashboard', 'error');
+        } else {
+          showMessage(errorMsg, 'error');
+        }
       }
     } catch (error) {
       console.error('Error adding URL:', error);
@@ -135,7 +151,12 @@ export default function AdminPage() {
           if (result.success) {
             showMessage(`Successfully crawled ${urlObj.url}: ${result.total_links} files found`, 'success');
           } else {
-            if (result.setup_required) {
+            const errorMsg = result.error || 'Unknown error';
+            if (errorMsg.includes('SETUP_REQUIRED')) {
+              showMessage(`⚠️ Setup Required: Please configure Supabase environment variables in Vercel dashboard`, 'error');
+            } else if (errorMsg.includes('TABLES_MISSING')) {
+              showMessage(`⚠️ Database Setup: Please run the SQL schema in your Supabase dashboard`, 'error');
+            } else if (result.setup_required) {
               showMessage(`Database setup required: ${result.error}`, 'error');
             } else if (result.crawl_error) {
               showMessage(`Crawling failed for ${urlObj.url}: ${result.error}`, 'error');
@@ -387,16 +408,26 @@ export default function AdminPage() {
               </ul>
             </div>
 
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
               <div className="flex items-center space-x-2 mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="font-medium text-green-800">Supabase Connected</span>
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+                <span className="font-medium text-amber-800">Database Setup Required</span>
               </div>
-              <p className="text-sm text-green-900 mb-2">
-                <strong>Database:</strong> Supabase PostgreSQL
+              <p className="text-sm text-amber-900 mb-3">
+                <strong>To use the WebScraper, you need to configure Supabase:</strong>
               </p>
-              <p className="text-sm text-green-900">
-                Your WebScraper is now connected to Supabase database. The crawler should work automatically!
+              <ol className="text-sm text-amber-900 space-y-2 mb-3">
+                <li><strong>1.</strong> Create a Supabase project at <a href="https://supabase.com/dashboard" target="_blank" className="underline font-medium">supabase.com</a></li>
+                <li><strong>2.</strong> Set environment variables in <a href="https://vercel.com/dashboard" target="_blank" className="underline font-medium">Vercel dashboard</a>:</li>
+                <li className="ml-4 font-mono text-xs bg-amber-100 p-2 rounded">
+                  NEXT_PUBLIC_SUPABASE_URL=your_project_url<br/>
+                  NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+                </li>
+                <li><strong>3.</strong> Run the SQL schema from <code className="bg-amber-100 px-1 rounded">supabase-schema.sql</code> in your Supabase SQL Editor</li>
+                <li><strong>4.</strong> Redeploy your application</li>
+              </ol>
+              <p className="text-sm text-amber-900">
+                💡 <strong>Tip:</strong> Check the error messages below for specific setup issues.
               </p>
             </div>
 
