@@ -13,7 +13,8 @@ export async function GET(request: NextRequest) {
       // If no query and no type filter, return recent results
     }
 
-    const links = DatabaseManager.searchLinks(query, type, limit);
+    const db = DatabaseManager.getInstance();
+    const links = await db.searchLinks(query, type, limit);
     
     return NextResponse.json({
       success: true,

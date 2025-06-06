@@ -22,7 +22,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Add URL to crawl queue
-    DatabaseManager.addUrlToCrawl(url);
+    const db = DatabaseManager.getInstance();
+    await db.addCrawledUrl(url);
 
     return NextResponse.json({
       success: true,

@@ -11,7 +11,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Clean up example data
-    DatabaseManager.cleanupExampleData();
+    const db = DatabaseManager.getInstance();
+    await db.cleanupExampleData();
 
     return NextResponse.json({
       success: true,

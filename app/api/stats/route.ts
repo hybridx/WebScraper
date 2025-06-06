@@ -3,8 +3,9 @@ import { DatabaseManager } from '@/lib/database';
 
 export async function GET() {
   try {
-    const stats = DatabaseManager.getStats();
-    const fileTypes = DatabaseManager.getFileTypes();
+    const db = DatabaseManager.getInstance();
+    const stats = await db.getStats();
+    const fileTypes = await db.getFileTypes();
 
     return NextResponse.json({
       success: true,

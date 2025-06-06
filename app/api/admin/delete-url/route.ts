@@ -15,7 +15,8 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Delete URL from crawled_urls table
-    DatabaseManager.deleteUrl(url);
+    const db = DatabaseManager.getInstance();
+    await db.deleteCrawledUrl(url);
 
     return NextResponse.json({
       success: true,

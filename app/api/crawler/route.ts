@@ -105,12 +105,13 @@ export async function POST(request: NextRequest) {
     const { links, subdirs } = await crawlDirectoryListing(url);
 
     // Store links in database
+    const db = DatabaseManager.getInstance();
     if (links.length > 0) {
-      DatabaseManager.insertLinks(links);
+      await db.addLinks(links);
     }
 
     // Update URL status
-    DatabaseManager.updateUrlStatus(url, 'completed');
+    await db.updateCrawledUrlStatus(url, 'completed');
 
     // Crawl a limited number of subdirectories to prevent infinite recursion
     let subLinksCount = 0;
@@ -118,12 +119,12 @@ export async function POST(request: NextRequest) {
       try {
         const { links: subLinks } = await crawlDirectoryListing(subdir);
         if (subLinks.length > 0) {
-          DatabaseManager.insertLinks(subLinks);
+          await db.addLinks(subLinks);
           subLinksCount += subLinks.length;
         }
       } catch (error) {
         console.error(`Error crawling subdirectory ${subdir}:`, error);
-        DatabaseManager.logErrorUrl(subdir, String(error));
+        await db.addErrorUrl(subdir, String(error));
       }
     }
 
@@ -145,8 +146,9 @@ export async function POST(request: NextRequest) {
     try {
       const { url } = await request.json();
       if (url) {
-        DatabaseManager.logErrorUrl(url, String(error));
-        DatabaseManager.updateUrlStatus(url, 'error');
+        const db = DatabaseManager.getInstance();
+        await db.addErrorUrl(url, String(error));
+        await db.updateCrawledUrlStatus(url, 'error', String(error));
       }
     } catch {
       // Ignore if we can't parse the request again

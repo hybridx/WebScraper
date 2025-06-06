@@ -3,7 +3,8 @@ import { DatabaseManager } from '@/lib/database';
 
 export async function GET() {
   try {
-    const urls = DatabaseManager.getAllUrls();
+    const db = DatabaseManager.getInstance();
+    const urls = await db.getCrawledUrls();
     
     return NextResponse.json({
       success: true,
