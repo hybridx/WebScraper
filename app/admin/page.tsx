@@ -22,13 +22,11 @@ export default function AdminPage() {
   const [url, setUrl] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [crawling, setCrawling] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
   const [urls, setUrls] = useState<CrawledUrl[]>([]);
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
-  const [crawlerType, setCrawlerType] = useState<'nodejs' | 'python'>('nodejs');
   const [healthStatus, setHealthStatus] = useState<any>(null);
 
   useEffect(() => {
@@ -128,68 +126,7 @@ export default function AdminPage() {
     }
   };
 
-  const handleStartCrawling = async () => {
-    if (!password.trim()) {
-      showMessage('Please enter password first', 'error');
-      return;
-    }
 
-    setCrawling(true);
-    try {
-      // Get pending URLs and crawl them
-      const pendingUrls = urls.filter(url => url.status === 'pending');
-      
-      if (pendingUrls.length === 0) {
-        showMessage('No pending URLs to crawl', 'error');
-        setCrawling(false);
-        return;
-      }
-
-      showMessage(`🚀 Triggering GitHub Actions to crawl ${pendingUrls.length} URLs...`, 'success');
-
-      // Trigger GitHub Actions workflow for each pending URL
-      for (const urlObj of pendingUrls.slice(0, 5)) { // Limit to 5 URLs
-        try {
-          const response = await fetch('/api/trigger-crawl', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ url: urlObj.url }),
-          });
-
-          const result = await response.json();
-          if (result.success) {
-            showMessage(`✅ GitHub workflow triggered for ${urlObj.url}. Check GitHub Actions tab for progress.`, 'success');
-          } else {
-            const errorMsg = result.error || 'Unknown error';
-            if (errorMsg.includes('GitHub token not configured')) {
-              showMessage(`⚠️ Setup Required: Please configure GITHUB_TOKEN environment variable in Vercel dashboard`, 'error');
-            } else {
-              showMessage(`Failed to trigger workflow for ${urlObj.url}: ${result.error}`, 'error');
-            }
-          }
-        } catch (error) {
-          showMessage(`Error triggering workflow for ${urlObj.url}: ${String(error)}`, 'error');
-        }
-      }
-
-      // Show instructions
-      showMessage(`🕐 GitHub Actions workflows are running. Files will appear in 2-3 minutes. Check GitHub repository Actions tab for progress.`, 'success');
-
-      // Refresh data after a delay
-      setTimeout(() => {
-        fetchStats();
-        fetchUrls();
-      }, 5000);
-      
-    } catch (error) {
-      console.error('Error triggering workflows:', error);
-      showMessage('Failed to trigger crawling workflows. Please try again.', 'error');
-    } finally {
-      setCrawling(false);
-    }
-  };
 
   const handleDeleteSelected = async () => {
     if (selectedUrls.size === 0) {
@@ -482,39 +419,49 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+            <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <div className="flex items-center space-x-2 mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <span className="font-medium text-green-800">GitHub Actions Setup</span>
+                <AlertCircle className="w-5 h-5 text-yellow-600" />
+                <span className="font-medium text-yellow-800">GitHub Actions Integration</span>
               </div>
-              <p className="text-sm text-green-900 mb-2">
-                <strong>Required environment variables in Vercel:</strong>
+              <p className="text-sm text-yellow-900 mb-2">
+                <strong>Manual Crawling (Available Now):</strong>
               </p>
-              <ul className="text-sm text-green-900 space-y-1 mb-3">
-                <li>• <code className="bg-green-100 px-1 rounded">GITHUB_TOKEN</code> - GitHub Personal Access Token</li>
-                <li>• <code className="bg-green-100 px-1 rounded">GITHUB_REPOSITORY</code> - Repository name (owner/repo)</li>
-                <li>• <code className="bg-green-100 px-1 rounded">NEXT_PUBLIC_SUPABASE_URL</code> - Supabase URL (as GitHub secret)</li>
-                <li>• <code className="bg-green-100 px-1 rounded">NEXT_PUBLIC_SUPABASE_ANON_KEY</code> - Supabase key (as GitHub secret)</li>
+              <ol className="text-sm text-yellow-900 space-y-1 mb-3">
+                <li>1. Go to <a href="https://github.com/hybridx/WebScraper/actions" target="_blank" className="underline font-medium">GitHub Actions</a></li>
+                <li>2. Click "🕷️ Crawl and Store Files" → "Run workflow"</li>
+                <li>3. Enter URL to crawl and click "Run workflow"</li>
+                <li>4. Files will appear in 2-3 minutes after completion</li>
+              </ol>
+              <p className="text-sm text-yellow-900">
+                <strong>Auto-trigger from admin panel:</strong> 🚧 Coming Soon
+              </p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border">
+              <div className="flex items-center space-x-2 mb-2">
+                <AlertCircle className="w-5 h-5 text-gray-600" />
+                <span className="font-medium text-gray-800">Troubleshooting</span>
+              </div>
+              <p className="text-sm text-gray-800 mb-2">
+                <strong>If new crawled data doesn't appear:</strong>
+              </p>
+              <ul className="text-sm text-gray-800 space-y-1">
+                <li>• Add Supabase environment variables in Vercel Dashboard</li>
+                <li>• <code className="bg-gray-200 px-1 rounded">NEXT_PUBLIC_SUPABASE_URL</code></li>
+                <li>• <code className="bg-gray-200 px-1 rounded">NEXT_PUBLIC_SUPABASE_ANON_KEY</code></li>
+                <li>• Redeploy after adding variables</li>
               </ul>
             </div>
 
-            <button
-              onClick={handleStartCrawling}
-              disabled={crawling || !password.trim()}
-              className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center justify-center space-x-2"
+            <a
+              href="https://github.com/hybridx/WebScraper/actions/workflows/crawl-and-store.yml"
+              target="_blank"
+              className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center space-x-2"
             >
-              {crawling ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Triggering GitHub Actions...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4" />
-                  <span>🚀 Start GitHub Crawl</span>
-                </>
-              )}
-            </button>
+              <Play className="w-4 h-4" />
+              <span>🚀 Open GitHub Actions</span>
+            </a>
 
             <button
               onClick={fetchStats}
