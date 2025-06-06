@@ -29,11 +29,23 @@ export default function AdminPage() {
   const [urls, setUrls] = useState<CrawledUrl[]>([]);
   const [selectedUrls, setSelectedUrls] = useState<Set<string>>(new Set());
   const [crawlerType, setCrawlerType] = useState<'nodejs' | 'python'>('nodejs');
+  const [healthStatus, setHealthStatus] = useState<any>(null);
 
   useEffect(() => {
     fetchStats();
     fetchUrls();
+    fetchHealthStatus();
   }, []);
+
+  const fetchHealthStatus = async () => {
+    try {
+      const response = await fetch('/api/health');
+      const data = await response.json();
+      setHealthStatus(data);
+    } catch (error) {
+      console.error('Error fetching health status:', error);
+    }
+  };
 
   const fetchStats = async () => {
     try {
@@ -408,27 +420,78 @@ export default function AdminPage() {
               </ul>
             </div>
 
+            {/* Health Status Display */}
+            {healthStatus && (
+              <div className={`p-4 rounded-lg border mb-4 ${
+                healthStatus.database?.status === 'connected' 
+                  ? 'bg-green-50 border-green-200' 
+                  : 'bg-red-50 border-red-200'
+              }`}>
+                <div className="flex items-center space-x-2 mb-2">
+                  {healthStatus.database?.status === 'connected' ? (
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                  ) : (
+                    <AlertCircle className="w-5 h-5 text-red-600" />
+                  )}
+                  <span className={`font-medium ${
+                    healthStatus.database?.status === 'connected' 
+                      ? 'text-green-800' 
+                      : 'text-red-800'
+                  }`}>
+                    System Status: {healthStatus.database?.status === 'connected' ? 'Ready' : 'Configuration Required'}
+                  </span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <p className={`font-medium mb-1 ${
+                      healthStatus.database?.status === 'connected' ? 'text-green-800' : 'text-red-800'
+                    }`}>Environment Variables:</p>
+                    <ul className={`space-y-1 ${
+                      healthStatus.database?.status === 'connected' ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      <li>SUPABASE_URL: {healthStatus.environment?.SUPABASE_URL ? '✅' : '❌'}</li>
+                      <li>SUPABASE_ANON_KEY: {healthStatus.environment?.SUPABASE_ANON_KEY ? '✅' : '❌'}</li>
+                      <li>POSTGRES_URL: {healthStatus.environment?.POSTGRES_URL ? '✅' : '❌'}</li>
+                    </ul>
+                  </div>
+                  <div>
+                    <p className={`font-medium mb-1 ${
+                      healthStatus.database?.status === 'connected' ? 'text-green-800' : 'text-red-800'
+                    }`}>Database Status:</p>
+                    <p className={`text-xs ${
+                      healthStatus.database?.status === 'connected' ? 'text-green-700' : 'text-red-700'
+                    }`}>
+                      {healthStatus.database?.status === 'connected' 
+                        ? '✅ Connected and ready' 
+                        : `❌ ${healthStatus.database?.error || 'Connection failed'}`
+                      }
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
               <div className="flex items-center space-x-2 mb-2">
                 <AlertCircle className="w-5 h-5 text-amber-600" />
-                <span className="font-medium text-amber-800">Database Setup Required</span>
+                <span className="font-medium text-amber-800">Setup Instructions</span>
               </div>
               <p className="text-sm text-amber-900 mb-3">
-                <strong>To use the WebScraper, you need to configure Supabase:</strong>
+                <strong>To use the WebScraper, ensure these are configured:</strong>
               </p>
               <ol className="text-sm text-amber-900 space-y-2 mb-3">
                 <li><strong>1.</strong> Create a Supabase project at <a href="https://supabase.com/dashboard" target="_blank" className="underline font-medium">supabase.com</a></li>
-                <li><strong>2.</strong> Set environment variables in <a href="https://vercel.com/dashboard" target="_blank" className="underline font-medium">Vercel dashboard</a>:</li>
-                <li className="ml-4 font-mono text-xs bg-amber-100 p-2 rounded">
-                  NEXT_PUBLIC_SUPABASE_URL=your_project_url<br/>
-                  NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-                </li>
+                <li><strong>2.</strong> Add <code className="bg-amber-100 px-1 rounded">SUPABASE_URL</code> environment variable in <a href="https://vercel.com/dashboard" target="_blank" className="underline font-medium">Vercel dashboard</a></li>
                 <li><strong>3.</strong> Run the SQL schema from <code className="bg-amber-100 px-1 rounded">supabase-schema.sql</code> in your Supabase SQL Editor</li>
-                <li><strong>4.</strong> Redeploy your application</li>
+                <li><strong>4.</strong> Check the system status above for confirmation</li>
               </ol>
-              <p className="text-sm text-amber-900">
-                💡 <strong>Tip:</strong> Check the error messages below for specific setup issues.
-              </p>
+              <button
+                onClick={fetchHealthStatus}
+                className="bg-amber-600 text-white px-3 py-1 rounded text-sm hover:bg-amber-700 transition-colors"
+              >
+                🔄 Refresh Status
+              </button>
             </div>
 
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
