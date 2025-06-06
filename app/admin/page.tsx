@@ -126,8 +126,6 @@ export default function AdminPage() {
     }
   };
 
-
-
   const handleDeleteSelected = async () => {
     if (selectedUrls.size === 0) {
       showMessage('Please select URLs to delete', 'error');
@@ -430,11 +428,23 @@ export default function AdminPage() {
               <ol className="text-sm text-yellow-900 space-y-1 mb-3">
                 <li>1. Go to <a href="https://github.com/hybridx/WebScraper/actions" target="_blank" className="underline font-medium">GitHub Actions</a></li>
                 <li>2. Click "🕷️ Crawl and Store Files" → "Run workflow"</li>
-                <li>3. Enter URL to crawl and click "Run workflow"</li>
-                <li>4. Files will appear in 2-3 minutes after completion</li>
+                <li>3. Enter URL to crawl and configure options:</li>
+                <li className="ml-4">• <strong>Recursive crawling:</strong> Enable to crawl subdirectories</li>
+                <li className="ml-4">• <strong>Max depth:</strong> Set crawl depth (1-5 levels deep)</li>
+                <li>4. Click "Run workflow" - files appear in 2-3 minutes</li>
               </ol>
+              <div className="bg-yellow-100 p-3 rounded border border-yellow-300 mb-3">
+                <p className="text-sm text-yellow-900 font-medium mb-2">🆕 New Recursive Crawling Features:</p>
+                <ul className="text-sm text-yellow-900 space-y-1">
+                  <li>• <strong>Folder Discovery:</strong> Automatically finds and crawls subdirectories</li>
+                  <li>• <strong>Depth Control:</strong> Set how deep to crawl (prevents infinite loops)</li>
+                  <li>• <strong>Smart Detection:</strong> Recognizes folders vs files in directory listings</li>
+                  <li>• <strong>Error Handling:</strong> Continues crawling even if some folders fail</li>
+                  <li>• <strong>Performance:</strong> Limits subdirectories per level to prevent timeouts</li>
+                </ul>
+              </div>
               <p className="text-sm text-yellow-900">
-                <strong>Auto-trigger from admin panel:</strong> 🚧 Coming Soon
+                <strong>Recommended settings:</strong> Depth 2-3 for most sites, Depth 1 for large sites
               </p>
             </div>
 
@@ -481,20 +491,38 @@ export default function AdminPage() {
           <div className="flex space-x-4">
             <button
               onClick={selectAllUrls}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200"
+              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors duration-200 flex items-center space-x-2"
             >
-              {selectedUrls.size === urls.length ? 'Deselect All' : 'Select All'}
+              <input
+                type="checkbox"
+                checked={selectedUrls.size === urls.length && urls.length > 0}
+                onChange={() => {}}
+                className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500 pointer-events-none"
+              />
+              <span>{selectedUrls.size === urls.length && urls.length > 0 ? 'Deselect All' : 'Select All'}</span>
             </button>
-            {selectedUrls.size > 0 && (
-              <button
-                onClick={handleDeleteSelected}
-                disabled={!password.trim()}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center space-x-2"
-              >
-                <span>Delete Selected ({selectedUrls.size})</span>
-              </button>
-            )}
+            <button
+              onClick={handleDeleteSelected}
+              disabled={selectedUrls.size === 0 || !password.trim()}
+              className={`px-4 py-2 rounded-lg transition-colors duration-200 flex items-center space-x-2 ${
+                selectedUrls.size === 0 
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                  : password.trim()
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-red-400 text-white cursor-not-allowed'
+              }`}
+            >
+              <span>Delete Selected {selectedUrls.size > 0 ? `(${selectedUrls.size})` : ''}</span>
+            </button>
           </div>
+        </div>
+
+        {/* Instructions for delete functionality */}
+        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>💡 How to delete:</strong> Check the boxes next to URLs you want to delete, then click "Delete Selected". 
+            Make sure you've entered your admin password in the form above first.
+          </p>
         </div>
 
         {urls.length === 0 ? (
@@ -502,36 +530,40 @@ export default function AdminPage() {
             <p className="text-gray-600">No URLs found. Add some URLs to get started.</p>
           </div>
         ) : (
-          <div className="space-y-2 max-h-96 overflow-y-auto">
+          <div className="space-y-3 max-h-96 overflow-y-auto">
             {urls.map((urlObj) => (
               <div
                 key={urlObj.id}
-                className={`flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors duration-200 ${
-                  selectedUrls.has(urlObj.url) ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                className={`flex items-center justify-between p-4 border-2 rounded-lg hover:bg-gray-50 transition-all duration-200 cursor-pointer ${
+                  selectedUrls.has(urlObj.url) 
+                    ? 'border-blue-500 bg-blue-50 shadow-md' 
+                    : 'border-gray-300 hover:border-gray-400'
                 }`}
+                onClick={() => toggleUrlSelection(urlObj.url)}
               >
                 <div className="flex items-center space-x-4 flex-1">
                   <input
                     type="checkbox"
                     checked={selectedUrls.has(urlObj.url)}
                     onChange={() => toggleUrlSelection(urlObj.url)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 focus:ring-2"
+                    onClick={(e) => e.stopPropagation()}
                   />
                   <div className="flex-1">
-                    <h3 className="font-medium text-gray-800 truncate">{urlObj.url}</h3>
+                    <h3 className="font-medium text-gray-900 truncate text-sm">{urlObj.url}</h3>
                     <div className="flex items-center space-x-4 mt-1">
-                      <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${
-                        urlObj.status === 'completed' ? 'bg-green-100 text-green-700' :
-                        urlObj.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
+                      <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full ${
+                        urlObj.status === 'completed' ? 'bg-green-100 text-green-800 border border-green-200' :
+                        urlObj.status === 'pending' ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                        'bg-red-100 text-red-800 border border-red-200'
                       }`}>
                         {urlObj.status}
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-600">
                         Added: {new Date(urlObj.created_at).toLocaleDateString()}
                       </span>
                       {urlObj.last_crawled && (
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-600">
                           Last crawled: {new Date(urlObj.last_crawled).toLocaleDateString()}
                         </span>
                       )}
@@ -542,12 +574,25 @@ export default function AdminPage() {
                   href={urlObj.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="ml-3 bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700 transition-colors duration-200 text-sm"
+                  className="ml-3 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 text-sm font-medium shadow-sm"
+                  onClick={(e) => e.stopPropagation()}
                 >
                   Visit
                 </a>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Selection Summary */}
+        {selectedUrls.size > 0 && (
+          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-sm text-yellow-800">
+              <strong>{selectedUrls.size} URL{selectedUrls.size === 1 ? '' : 's'} selected.</strong> 
+              {!password.trim() && (
+                <span className="ml-2 text-red-700">⚠️ Enter admin password above to enable deletion.</span>
+              )}
+            </p>
           </div>
         )}
       </div>

@@ -24,29 +24,75 @@ interface ExtractedLink {
   type: string;
 }
 
+interface CrawlResult {
+  links: ExtractedLink[];
+  subdirs: string[];
+}
+
+interface CrawlStats {
+  totalLinks: number;
+  totalDirs: number;
+  crawledUrls: Set<string>;
+  maxDepthReached: number;
+}
+
 function classifyFileType(url: string): string {
   const urlLower = url.toLowerCase();
   
-  if (urlLower.match(/\.(mp4|mkv|3gp|avi|mov|mpg|mpeg|wmv|m4v)$/)) {
+  if (urlLower.match(/\.(mp4|mkv|3gp|avi|mov|mpg|mpeg|wmv|m4v|webm|flv)$/)) {
     return "video";
-  } else if (urlLower.match(/\.(mp3|aif|mid|midi|mpa|ogg|wav|wma|wpl)$/)) {
+  } else if (urlLower.match(/\.(mp3|aif|mid|midi|mpa|ogg|wav|wma|wpl|aac|flac|m4a)$/)) {
     return "audio";
-  } else if (urlLower.match(/\.(rar|zip|deb|pkg|tar\.gz|7z|arj)$/)) {
+  } else if (urlLower.match(/\.(rar|zip|deb|pkg|tar\.gz|7z|arj|bz2|gz|tar)$/)) {
     return "compressed";
-  } else if (urlLower.match(/\.(bin|dmg|iso|toast|vcd)$/)) {
+  } else if (urlLower.match(/\.(bin|dmg|iso|toast|vcd|img)$/)) {
     return "disk";
-  } else if (urlLower.match(/\.(exe|apk|bat|com|jar|py|wsf)$/)) {
+  } else if (urlLower.match(/\.(exe|apk|bat|com|jar|py|wsf|msi|deb|rpm)$/)) {
     return "executable";
-  } else if (urlLower.match(/\.(ai|bmp|gif|ico|jpeg|png|jpg|tif|svg)$/)) {
+  } else if (urlLower.match(/\.(ai|bmp|gif|ico|jpeg|png|jpg|tif|svg|webp)$/)) {
     return "image";
-  } else if (urlLower.match(/\.(pdf|txt|doc|rtf|wpd|docx|odt|wps|wks)$/)) {
+  } else if (urlLower.match(/\.(pdf|txt|doc|rtf|wpd|docx|odt|wps|wks|md|readme)$/)) {
     return "text";
   } else {
     return "other";
   }
 }
 
-function parseWithJSDOM(html: string, baseUrl: string): { links: ExtractedLink[], subdirs: string[] } {
+function isDirectory(href: string, text: string): boolean {
+  // Enhanced directory detection
+  return (
+    href.endsWith('/') ||                           // Classic directory indicator
+    text.toLowerCase().includes('[dir]') ||         // Apache style
+    text.toLowerCase().includes('folder') ||        // Common naming
+    text.toLowerCase().includes('directory') ||     // Common naming
+    (!href.includes('.') && !href.includes('?'))    // No extension, no query params
+  );
+}
+
+function normalizeUrl(href: string, baseUrl: string): string {
+  try {
+    // Handle relative URLs
+    if (href.startsWith('./')) {
+      href = href.substring(2);
+    }
+    
+    // If it's already a complete URL, return as is
+    if (href.startsWith('http://') || href.startsWith('https://')) {
+      return href;
+    }
+    
+    // Build complete URL
+    const base = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+    const path = href.startsWith('/') ? href : '/' + href;
+    
+    return base + path;
+  } catch (error) {
+    console.error(`Error normalizing URL: ${href} with base ${baseUrl}`, error);
+    return href;
+  }
+}
+
+function parseWithJSDOM(html: string, baseUrl: string): CrawlResult {
   if (!jsdomAvailable) {
     throw new Error('JSDOM not available');
   }
@@ -63,22 +109,27 @@ function parseWithJSDOM(html: string, baseUrl: string): { links: ExtractedLink[]
       const href = linkElement.getAttribute('href');
       if (!href) continue;
 
-      // Skip parent directory links and absolute URLs
-      if (href === '../' || href.startsWith('/') || href.startsWith('http')) {
+      // Skip unwanted links
+      if (href === '../' || href === '.' || href === '/' || 
+          href.startsWith('?') || href.startsWith('#') || 
+          href.startsWith('mailto:') || href.includes('javascript:')) {
         continue;
       }
 
-      const completeLink = baseUrl.replace(/\/$/, '') + '/' + href;
+      const text = linkElement.textContent || href;
+      const completeLink = normalizeUrl(href, baseUrl);
 
-      if (href.endsWith('/')) {
+      if (isDirectory(href, text)) {
         // It's a subdirectory
-        subdirectories.push(completeLink);
+        if (!subdirectories.includes(completeLink)) {
+          subdirectories.push(completeLink);
+        }
       } else {
         // It's a file
         const fileType = classifyFileType(completeLink);
         if (fileType !== "other") {
           extractedLinks.push({
-            name: linkElement.textContent || href,
+            name: text.trim(),
             link: completeLink,
             type: fileType
           });
@@ -94,11 +145,11 @@ function parseWithJSDOM(html: string, baseUrl: string): { links: ExtractedLink[]
   }
 }
 
-function parseWithRegex(html: string, baseUrl: string): { links: ExtractedLink[], subdirs: string[] } {
+function parseWithRegex(html: string, baseUrl: string): CrawlResult {
   const extractedLinks: ExtractedLink[] = [];
   const subdirectories: string[] = [];
   
-  // Robust regex pattern for Apache directory listings
+  // Enhanced regex pattern for directory listings
   const linkPattern = /<a\s+[^>]*href\s*=\s*["']([^"']+)["'][^>]*>([^<]+)/gi;
   
   let match;
@@ -107,10 +158,9 @@ function parseWithRegex(html: string, baseUrl: string): { links: ExtractedLink[]
     let text = match[2];
     
     // Skip unwanted links
-    if (!href || href === '../' || href === '/' || href.startsWith('?') || 
-        href.startsWith('http') || href.startsWith('//') || 
-        href.startsWith('#') || href.startsWith('mailto:') ||
-        href.includes('javascript:')) {
+    if (!href || href === '../' || href === '.' || href === '/' || 
+        href.startsWith('?') || href.startsWith('http') || href.startsWith('//') || 
+        href.startsWith('#') || href.startsWith('mailto:') || href.includes('javascript:')) {
       continue;
     }
 
@@ -120,17 +170,19 @@ function parseWithRegex(html: string, baseUrl: string): { links: ExtractedLink[]
       text = decodeURIComponent(href);
     }
 
-    const completeLink = baseUrl.replace(/\/$/, '') + '/' + href;
+    const completeLink = normalizeUrl(href, baseUrl);
 
-    if (href.endsWith('/')) {
+    if (isDirectory(href, text)) {
       // It's a subdirectory
-      subdirectories.push(completeLink);
+      if (!subdirectories.includes(completeLink)) {
+        subdirectories.push(completeLink);
+      }
     } else {
       // It's a file
       const fileType = classifyFileType(completeLink);
       if (fileType !== "other") {
         extractedLinks.push({
-          name: text,
+          name: text.trim(),
           link: completeLink,
           type: fileType
         });
@@ -149,7 +201,7 @@ function parseWithRegex(html: string, baseUrl: string): { links: ExtractedLink[]
   return { links: uniqueLinks, subdirs: uniqueSubdirs };
 }
 
-async function crawlDirectoryListing(url: string): Promise<{ links: ExtractedLink[], subdirs: string[] }> {
+async function crawlDirectoryListing(url: string): Promise<CrawlResult> {
   try {
     console.log(`Fetching URL: ${url}`);
     
@@ -195,9 +247,79 @@ async function crawlDirectoryListing(url: string): Promise<{ links: ExtractedLin
   }
 }
 
+async function crawlRecursively(
+  startUrl: string, 
+  maxDepth: number = 3, 
+  currentDepth: number = 0, 
+  stats: CrawlStats = { totalLinks: 0, totalDirs: 0, crawledUrls: new Set(), maxDepthReached: 0 },
+  db: DatabaseManager
+): Promise<CrawlStats> {
+  
+  // Check depth limit
+  if (currentDepth >= maxDepth) {
+    console.log(`🚫 Max depth ${maxDepth} reached, stopping recursion`);
+    stats.maxDepthReached = Math.max(stats.maxDepthReached, currentDepth);
+    return stats;
+  }
+
+  // Check if already crawled (prevent infinite loops)
+  if (stats.crawledUrls.has(startUrl)) {
+    console.log(`🔄 Already crawled ${startUrl}, skipping`);
+    return stats;
+  }
+
+  stats.crawledUrls.add(startUrl);
+  console.log(`📁 Crawling depth ${currentDepth}: ${startUrl}`);
+
+  try {
+    // Crawl current directory
+    const result = await crawlDirectoryListing(startUrl);
+    
+    // Store files found at this level
+    if (result.links.length > 0) {
+      await db.addLinks(result.links);
+      stats.totalLinks += result.links.length;
+      console.log(`✅ Stored ${result.links.length} files from depth ${currentDepth}`);
+    }
+
+    stats.totalDirs += 1;
+    stats.maxDepthReached = Math.max(stats.maxDepthReached, currentDepth);
+
+    // Recursively crawl subdirectories (if not at max depth)
+    if (currentDepth < maxDepth - 1 && result.subdirs.length > 0) {
+      console.log(`🔍 Found ${result.subdirs.length} subdirectories, crawling...`);
+      
+      // Limit subdirectories to prevent timeout
+      const maxSubdirs = process.env.NODE_ENV === 'production' ? 3 : 5;
+      const subdirsToProcess = result.subdirs.slice(0, maxSubdirs);
+      
+      for (const subdir of subdirsToProcess) {
+        try {
+          await crawlRecursively(subdir, maxDepth, currentDepth + 1, stats, db);
+        } catch (error) {
+          console.error(`❌ Error crawling subdirectory ${subdir}:`, error);
+          await db.addErrorUrl(subdir, String(error));
+        }
+      }
+      
+      if (result.subdirs.length > maxSubdirs) {
+        console.log(`⚠️ Limited to first ${maxSubdirs} subdirectories to prevent timeout`);
+      }
+    }
+
+    return stats;
+
+  } catch (error) {
+    console.error(`❌ Error crawling ${startUrl}:`, error);
+    await db.addErrorUrl(startUrl, String(error));
+    throw error;
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const { url } = await request.json();
+    const body = await request.json();
+    const { url, maxDepth = 2, recursive = true } = body;
 
     if (!url) {
       return NextResponse.json({ error: 'URL is required' }, { status: 400 });
@@ -211,7 +333,10 @@ export async function POST(request: NextRequest) {
     }
 
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL === '1';
-    console.log(`🚀 Starting crawl of: ${url} (${isProduction ? 'production' : 'development'})`);
+    const effectiveMaxDepth = isProduction ? Math.min(maxDepth, 2) : Math.min(maxDepth, 4); // Limit depth in production
+    
+    console.log(`🚀 Starting ${recursive ? 'recursive' : 'single-level'} crawl of: ${url}`);
+    console.log(`📏 Max depth: ${effectiveMaxDepth} (${isProduction ? 'production' : 'development'})`);
 
     // Test database connection first
     let db: DatabaseManager;
@@ -228,36 +353,34 @@ export async function POST(request: NextRequest) {
       }, { status: 500 });
     }
 
-    // Crawl the main URL
-    console.log('🕷️ Starting directory crawl...');
-    let links, subdirs;
+    // Add URL to crawled_urls if not exists
     try {
-      const crawlResult = await crawlDirectoryListing(url);
-      links = crawlResult.links;
-      subdirs = crawlResult.subdirs;
-      console.log(`✅ Crawl successful: found ${links.length} files and ${subdirs.length} subdirectories`);
-    } catch (crawlError) {
-      console.error('❌ Crawling failed:', crawlError);
-      return NextResponse.json({
-        success: false,
-        error: `Failed to crawl URL: ${String(crawlError)}`,
-        crawl_error: true
-      }, { status: 500 });
+      await db.addCrawledUrl(url);
+    } catch (error) {
+      console.log('⚠️ URL already exists in crawled_urls table');
     }
 
-    // Store links in database
-    if (links.length > 0) {
-      try {
-        await db.addLinks(links);
-        console.log(`✅ Successfully stored ${links.length} links in database`);
-      } catch (storeError) {
-        console.error('❌ Failed to store links:', storeError);
-        return NextResponse.json({
-          success: false,
-          error: `Failed to store links in database: ${String(storeError)}`,
-          storage_error: true
-        }, { status: 500 });
+    let stats: CrawlStats;
+
+    if (recursive) {
+      // Recursive crawling
+      console.log('🕷️ Starting recursive directory crawl...');
+      stats = await crawlRecursively(url, effectiveMaxDepth, 0, undefined, db);
+    } else {
+      // Single-level crawling (legacy behavior)
+      console.log('🕷️ Starting single-level directory crawl...');
+      const result = await crawlDirectoryListing(url);
+      
+      if (result.links.length > 0) {
+        await db.addLinks(result.links);
       }
+      
+      stats = {
+        totalLinks: result.links.length,
+        totalDirs: 1,
+        crawledUrls: new Set([url]),
+        maxDepthReached: 0
+      };
     }
 
     // Update URL status
@@ -265,33 +388,18 @@ export async function POST(request: NextRequest) {
       await db.updateCrawledUrlStatus(url, 'completed');
     } catch (statusError) {
       console.error('⚠️ Failed to update URL status:', statusError);
-      // Don't return error here, links were stored successfully
-    }
-
-    // Skip subdirectories in production to avoid timeout
-    let subLinksCount = 0;
-    if (!isProduction && subdirs.length > 0) {
-      for (const subdir of subdirs.slice(0, 2)) {
-        try {
-          const { links: subLinks } = await crawlDirectoryListing(subdir);
-          if (subLinks.length > 0) {
-            await db.addLinks(subLinks);
-            subLinksCount += subLinks.length;
-          }
-        } catch (error) {
-          console.error(`❌ Error crawling subdirectory ${subdir}:`, error);
-          await db.addErrorUrl(subdir, String(error));
-        }
-      }
     }
 
     const response = {
       success: true,
-      links_found: links.length,
-      subdirs_found: subdirs.length,
-      total_links: links.length + subLinksCount,
-      message: `Successfully crawled ${url}`,
-      parsing_method: jsdomAvailable && !isProduction ? 'JSDOM' : 'Regex'
+      links_found: stats.totalLinks,
+      directories_crawled: stats.totalDirs,
+      urls_processed: stats.crawledUrls.size,
+      max_depth_reached: stats.maxDepthReached,
+      message: `Successfully crawled ${url} ${recursive ? 'recursively' : ''}`,
+      parsing_method: jsdomAvailable && !isProduction ? 'JSDOM' : 'Regex',
+      recursive_crawling: recursive,
+      depth_limit: effectiveMaxDepth
     };
 
     console.log('🎉 Crawl completed:', response);

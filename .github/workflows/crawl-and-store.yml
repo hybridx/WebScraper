@@ -11,6 +11,20 @@ on:
         description: 'Source (app or manual)'
         default: 'manual'
         type: string
+      recursive:
+        description: 'Enable recursive crawling'
+        default: true
+        type: boolean
+      max_depth:
+        description: 'Maximum crawl depth (1-5)'
+        default: '3'
+        type: choice
+        options:
+          - '1'
+          - '2'
+          - '3'
+          - '4'
+          - '5'
   repository_dispatch:
     types: [crawl-request]
 
@@ -38,10 +52,14 @@ jobs:
           echo "SUPABASE_URL length: ${#NEXT_PUBLIC_SUPABASE_URL}"
           echo "SUPABASE_KEY length: ${#NEXT_PUBLIC_SUPABASE_ANON_KEY}"
           echo "CRAWL_URL: $CRAWL_URL"
+          echo "RECURSIVE: $RECURSIVE"
+          echo "MAX_DEPTH: $MAX_DEPTH"
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           CRAWL_URL: ${{ github.event.inputs.url || github.event.client_payload.url }}
+          RECURSIVE: ${{ github.event.inputs.recursive || github.event.client_payload.recursive || 'true' }}
+          MAX_DEPTH: ${{ github.event.inputs.max_depth || github.event.client_payload.max_depth || '3' }}
           
       - name: 🕷️ Run crawler
         run: node scripts/github-crawler.js
@@ -50,9 +68,13 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           CRAWL_URL: ${{ github.event.inputs.url || github.event.client_payload.url }}
           SOURCE: ${{ github.event.inputs.source || github.event.client_payload.source }}
+          RECURSIVE: ${{ github.event.inputs.recursive || github.event.client_payload.recursive || 'true' }}
+          MAX_DEPTH: ${{ github.event.inputs.max_depth || github.event.client_payload.max_depth || '3' }}
           
       - name: 📊 Display results
         run: |
           echo "✅ Crawl completed successfully!"
           echo "🔗 URL: ${{ github.event.inputs.url || github.event.client_payload.url }}"
-          echo "📱 Source: ${{ github.event.inputs.source || github.event.client_payload.source }}" 
+          echo "📱 Source: ${{ github.event.inputs.source || github.event.client_payload.source }}"
+          echo "🔄 Recursive: ${{ github.event.inputs.recursive || github.event.client_payload.recursive || 'true' }}"
+          echo "📏 Max Depth: ${{ github.event.inputs.max_depth || github.event.client_payload.max_depth || '3' }}" 
