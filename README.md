@@ -1,4 +1,4 @@
-# WebScraper - Next.js Edition
+# WebScraper - Next.js Edition.
 
 A modern, full-featured web scraper built with Next.js and Supabase. Crawl directory listings, classify files, and search through media collections with a beautiful UI.
 
